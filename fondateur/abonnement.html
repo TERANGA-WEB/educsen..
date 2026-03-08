@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des plans · EducSen</title>
+    <!-- Material Icons & Google Fonts -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f3f4f6;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header simple */
+        .app-header {
+            background-color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .app-header h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .app-header p {
+            color: #475569;
+            font-size: 0.95rem;
+        }
+
+        /* Container principal */
+        .main-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Champs de formulaire */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #334155;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59,130,246,0.1);
+        }
+
+        /* Boutons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+            border: 1px solid #e2e8f0;
+            color: #334155;
+        }
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            box-shadow: 0 8px 16px -4px rgba(59,130,246,0.3);
+        }
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+        .btn-secondary:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        /* Détails utilisateur */
+        .user-detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .user-detail-item:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: 500;
+            color: #64748b;
+        }
+        .detail-value {
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        /* Compte à rebours */
+        .countdown-container {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: center;
+            margin-top: 2rem;
+        }
+        .countdown-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #334155;
+            margin-bottom: 1rem;
+        }
+        .countdown-grid {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .countdown-item {
+            background: white;
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            min-width: 100px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.02);
+        }
+        .countdown-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #3b82f6;
+            line-height: 1;
+        }
+        .countdown-label {
+            font-size: 0.85rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        /* Popups */
+        .popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 40px;
+            background: white;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            border-left: 4px solid;
+        }
+        .popup.show {
+            transform: translateX(0);
+        }
+        .popup.success {
+            border-left-color: #10b981;
+        }
+        .popup.error {
+            border-left-color: #ef4444;
+        }
+        .popup-icon {
+            font-size: 1.5rem;
+        }
+        .popup.success .popup-icon { color: #10b981; }
+        .popup.error .popup-icon { color: #ef4444; }
+        .popup-message {
+            font-weight: 500;
+        }
+
+        /* États */
+        .hidden { display: none; }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #64748b;
+        }
+
+        @media (max-width: 640px) {
+            .main-container { padding: 0 1rem; }
+            .card { padding: 1.5rem; }
+            .input-group { flex-direction: column; }
+            .countdown-grid { gap: 0.5rem; }
+            .countdown-item { padding: 0.8rem 1rem; min-width: 70px; }
+            .countdown-number { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <header class="app-header">
+        <h1>Gestion des plans</h1>
+        <p>Recherchez un utilisateur et modifiez son abonnement</p>
+    </header>
+
+    <div class="main-container">
+        <!-- Carte de recherche -->
+        <div class="card">
+            <h2><span class="material-icons">search</span> Rechercher un utilisateur</h2>
+            <div class="form-group">
+                <label for="searchInput">Email ou numéro de téléphone</label>
+                <div class="input-group">
+                    <input type="text" id="searchInput" placeholder="ex: user@example.com ou +221..." />
+                    <button class="btn btn-primary" id="searchBtn">
+                        <span class="material-icons">search</span> Rechercher
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carte des détails utilisateur (masquée au départ) -->
+        <div class="card hidden" id="userDetailsCard">
+            <h2><span class="material-icons">person</span> Détails de l'utilisateur</h2>
+            <div id="userDetailsContent">
+                <!-- injecté par JS -->
+            </div>
+        </div>
+
+        <!-- Carte de modification (masquée au départ) -->
+        <div class="card hidden" id="modifyPlanCard">
+            <h2><span class="material-icons">edit</span> Modifier le plan</h2>
+            <div class="form-group">
+                <label for="planSelect">Nouveau plan</label>
+                <select id="planSelect">
+                    <option value="Basic">Basic</option>
+                    <option value="Pro">Pro</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="durationSelect">Durée</label>
+                <select id="durationSelect">
+                    <option value="3">3 mois</option>
+                    <option value="6">6 mois</option>
+                    <option value="12">1 année</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" id="updatePlanBtn">
+                <span class="material-icons">update</span> Mettre à jour le plan
+            </button>
+        </div>
+
+        <!-- Compte à rebours (masqué au départ) -->
+        <div class="countdown-container hidden" id="countdownCard">
+            <div class="countdown-title">Temps restant avant expiration</div>
+            <div class="countdown-grid">
+                <div class="countdown-item">
+                    <div class="countdown-number" id="days">0</div>
+                    <div class="countdown-label">Jours</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-number" id="hours">0</div>
+                    <div class="countdown-label">Heures</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-number" id="minutes">0</div>
+                    <div class="countdown-label">Minutes</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-number" id="seconds">0</div>
+                    <div class="countdown-label">Secondes</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Popups de feedback -->
+    <div class="popup" id="popupSuccess">
+        <span class="material-icons popup-icon">check_circle</span>
+        <span class="popup-message" id="popupSuccessMessage">Opération réussie</span>
+    </div>
+    <div class="popup" id="popupError">
+        <span class="material-icons popup-icon">error</span>
+        <span class="popup-message" id="popupErrorMessage">Une erreur est survenue</span>
+    </div>
+
+    <!-- Firebase Import Map -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js",
+                "firebase/auth": "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        // ---------- IMPORTS FIREBASE ----------
+        import { initializeApp } from 'firebase/app';
+        import { getAuth, onAuthStateChanged } from 'firebase/auth';
+        import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
+
+        // ---------- CONFIGURATION FIREBASE ----------
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7B-0O9mOdbIDQV-g6hsZx07G2ZvzKoxo",
+            authDomain: "real-educsen.firebaseapp.com",
+            projectId: "real-educsen",
+            storageBucket: "real-educsen.firebasestorage.app",
+            messagingSenderId: "80660233362",
+            appId: "1:80660233362:web:5edf5060254170056eba4b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // ---------- ÉLÉMENTS DOM ----------
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const userDetailsCard = document.getElementById('userDetailsCard');
+        const userDetailsContent = document.getElementById('userDetailsContent');
+        const modifyPlanCard = document.getElementById('modifyPlanCard');
+        const planSelect = document.getElementById('planSelect');
+        const durationSelect = document.getElementById('durationSelect');
+        const updatePlanBtn = document.getElementById('updatePlanBtn');
+        const countdownCard = document.getElementById('countdownCard');
+        const daysEl = document.getElementById('days');
+        const hoursEl = document.getElementById('hours');
+        const minutesEl = document.getElementById('minutes');
+        const secondsEl = document.getElementById('seconds');
+        const popupSuccess = document.getElementById('popupSuccess');
+        const popupError = document.getElementById('popupError');
+        const popupSuccessMessage = document.getElementById('popupSuccessMessage');
+        const popupErrorMessage = document.getElementById('popupErrorMessage');
+
+        // ---------- ÉTAT ----------
+        let currentUser = null;          // utilisateur connecté (admin)
+        let targetUserData = null;       // données de l'utilisateur recherché
+        let targetUserId = null;          // son ID Firestore
+        let countdownInterval = null;
+
+        // ---------- FONCTIONS POPUP ----------
+        function showPopup(element, message, duration = 3000) {
+            const msgEl = element.id === 'popupSuccess' ? popupSuccessMessage : popupErrorMessage;
+            msgEl.textContent = message;
+            element.classList.add('show');
+            setTimeout(() => {
+                element.classList.remove('show');
+            }, duration);
+        }
+
+        // ---------- FONCTIONS DE RECHERCHE ----------
+        async function searchUser() {
+            const queryText = searchInput.value.trim();
+            if (!queryText) {
+                showPopup(popupError, 'Veuillez entrer un email ou un numéro de téléphone.');
+                return;
+            }
+
+            try {
+                // Recherche dans la collection 'users' (à adapter selon votre structure)
+                // On suppose que les champs sont 'email' et 'phone'
+                const usersRef = collection(db, 'users');
+                const emailQuery = query(usersRef, where('email', '==', queryText));
+                const phoneQuery = query(usersRef, where('phone', '==', queryText));
+
+                const [emailSnapshot, phoneSnapshot] = await Promise.all([
+                    getDocs(emailQuery),
+                    getDocs(phoneQuery)
+                ]);
+
+                let userDoc = null;
+                if (!emailSnapshot.empty) {
+                    userDoc = emailSnapshot.docs[0];
+                } else if (!phoneSnapshot.empty) {
+                    userDoc = phoneSnapshot.docs[0];
+                }
+
+                if (!userDoc) {
+                    // Masquer les cartes précédentes
+                    userDetailsCard.classList.add('hidden');
+                    modifyPlanCard.classList.add('hidden');
+                    countdownCard.classList.add('hidden');
+                    if (countdownInterval) clearInterval(countdownInterval);
+                    showPopup(popupError, 'Aucun utilisateur trouvé avec cet email/téléphone.');
+                    return;
+                }
+
+                // Stocker les données
+                targetUserId = userDoc.id;
+                targetUserData = userDoc.data();
+
+                // Afficher les détails
+                displayUserDetails(targetUserData);
+                userDetailsCard.classList.remove('hidden');
+                modifyPlanCard.classList.remove('hidden');
+
+                // Si l'utilisateur a une date d'expiration, démarrer le compte à rebours
+                if (targetUserData.expirationDate) {
+                    startCountdown(targetUserData.expirationDate.toDate());
+                } else {
+                    countdownCard.classList.add('hidden');
+                }
+
+            } catch (error) {
+                console.error('Erreur recherche:', error);
+                showPopup(popupError, 'Erreur lors de la recherche.');
+            }
+        }
+
+        function displayUserDetails(user) {
+            const fullName = user.displayName || user.nom || user.prenom ? `${user.prenom || ''} ${user.nom || ''}`.trim() : 'Non renseigné';
+            const email = user.email || 'Non renseigné';
+            const phone = user.phone || 'Non renseigné';
+            const plan = user.plan || 'Non défini';
+            const expiration = user.expirationDate ? new Date(user.expirationDate.toDate()).toLocaleDateString('fr-FR') : 'Non définie';
+
+            userDetailsContent.innerHTML = `
+                <div class="user-detail-item">
+                    <span class="detail-label">Nom complet</span>
+                    <span class="detail-value">${fullName}</span>
+                </div>
+                <div class="user-detail-item">
+                    <span class="detail-label">Email</span>
+                    <span class="detail-value">${email}</span>
+                </div>
+                <div class="user-detail-item">
+                    <span class="detail-label">Téléphone</span>
+                    <span class="detail-value">${phone}</span>
+                </div>
+                <div class="user-detail-item">
+                    <span class="detail-label">Établissement</span>
+                    <span class="detail-value">${user.etablissement || 'Non renseigné'}</span>
+                </div>
+                <div class="user-detail-item">
+                    <span class="detail-label">Plan actuel</span>
+                    <span class="detail-value">${plan}</span>
+                </div>
+                <div class="user-detail-item">
+                    <span class="detail-label">Date d'expiration</span>
+                    <span class="detail-value">${expiration}</span>
+                </div>
+            `;
+        }
+
+        // ---------- MISE À JOUR DU PLAN ----------
+        async function updatePlan() {
+            if (!targetUserId) {
+                showPopup(popupError, 'Aucun utilisateur sélectionné.');
+                return;
+            }
+
+            const newPlan = planSelect.value;
+            const durationMonths = parseInt(durationSelect.value);
+            let expirationDate = null;
+
+            // Calculer la nouvelle date d'expiration (à partir d'aujourd'hui)
+            const now = new Date();
+            expirationDate = new Date(now);
+            expirationDate.setMonth(expirationDate.getMonth() + durationMonths);
+
+            try {
+                const userRef = doc(db, 'users', targetUserId);
+                await updateDoc(userRef, {
+                    plan: newPlan,
+                    expirationDate: expirationDate
+                });
+
+                // Mettre à jour les données locales
+                targetUserData.plan = newPlan;
+                targetUserData.expirationDate = expirationDate;
+
+                // Rafraîchir l'affichage des détails
+                displayUserDetails(targetUserData);
+
+                // Démarrer le compte à rebours
+                startCountdown(expirationDate);
+
+                showPopup(popupSuccess, 'Plan mis à jour avec succès !');
+            } catch (error) {
+                console.error('Erreur mise à jour:', error);
+                showPopup(popupError, 'Échec de la mise à jour.');
+            }
+        }
+
+        // ---------- COMPTE À REBOURS ----------
+        function startCountdown(expirationDate) {
+            if (countdownInterval) clearInterval(countdownInterval);
+
+            const updateCountdown = () => {
+                const now = new Date();
+                const diff = expirationDate - now;
+
+                if (diff <= 0) {
+                    // Expiré
+                    daysEl.textContent = '0';
+                    hoursEl.textContent = '0';
+                    minutesEl.textContent = '0';
+                    secondsEl.textContent = '0';
+                    if (countdownInterval) clearInterval(countdownInterval);
+                    return;
+                }
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                daysEl.textContent = days;
+                hoursEl.textContent = hours;
+                minutesEl.textContent = minutes;
+                secondsEl.textContent = seconds;
+            };
+
+            updateCountdown();
+            countdownInterval = setInterval(updateCountdown, 1000);
+            countdownCard.classList.remove('hidden');
+        }
+
+        // ---------- ÉVÉNEMENTS ----------
+        searchBtn.addEventListener('click', searchUser);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchUser();
+        });
+        updatePlanBtn.addEventListener('click', updatePlan);
+
+        // ---------- GESTION AUTH ----------
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                // Rediriger vers la page de connexion
+                window.location.href = 'connexion.html';
+                return;
+            }
+            // Utilisateur connecté, rien de spécial à faire
+        });
+    </script>
+</body>
+</html>

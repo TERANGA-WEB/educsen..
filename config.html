@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Configuration · ÉducSen</title>
+    <!-- Police moderne -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f6f9fc 0%, #edf2f7 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .container {
+            max-width: 560px;
+            width: 100%;
+        }
+
+        .card {
+            background: white;
+            border-radius: 32px;
+            padding: 2.5rem 2rem;
+            box-shadow: 0 20px 35px -8px rgba(0, 20, 30, 0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: #0a2e4a;
+            margin-bottom: 0.5rem;
+        }
+
+        .subhead {
+            font-size: 0.95rem;
+            color: #4a6877;
+            margin-bottom: 2rem;
+            font-weight: 400;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 1rem;
+        }
+
+        /* Loader initial */
+        .loader-init {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 1rem;
+            color: #1e4c6b;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 1.2rem;
+            height: 1.2rem;
+            border: 3px solid rgba(0,0,0,0.1);
+            border-radius: 50%;
+            border-top-color: #1e4c6b;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .spinner-large {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-width: 4px;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Sections avec transition */
+        .section {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .section-hidden {
+            opacity: 0;
+            transform: translateX(10px);
+            pointer-events: none;
+            position: absolute;
+            visibility: hidden;
+        }
+
+        /* Groupes de formulaire */
+        .form-group {
+            margin-bottom: 1.8rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #1e4c6b;
+            margin-bottom: 0.6rem;
+        }
+
+        .label-radio {
+            display: inline-flex;
+            align-items: center;
+            font-weight: 500;
+            text-transform: none;
+            letter-spacing: normal;
+            color: #0a2e4a;
+            margin-right: 1.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 0.3rem;
+        }
+
+        input[type="text"],
+        input[type="tel"] {
+            width: 100%;
+            padding: 1rem 1.2rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 18px;
+            font-size: 1rem;
+            transition: border 0.2s, box-shadow 0.2s;
+            outline: none;
+            background: white;
+        }
+
+        input[type="text"]:focus,
+        input[type="tel"]:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        input.error {
+            border-color: #e53e3e;
+            background-color: #fff5f5;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            background: linear-gradient(135deg, #1e4c6b, #113946);
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 8px 18px rgba(17, 57, 70, 0.2);
+            margin-top: 1rem;
+            gap: 0.6rem;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: scale(1.02);
+            background: linear-gradient(135deg, #1f5579, #0e3b4a);
+            box-shadow: 0 12px 24px rgba(17, 57, 70, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: #94a3b8;
+            box-shadow: none;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #1e4c6b;
+            color: #1e4c6b;
+            box-shadow: none;
+        }
+
+        .btn-outline:hover {
+            background: #1e4c6b;
+            color: white;
+        }
+
+        .error-message {
+            color: #c53030;
+            background: #fff5f5;
+            border-radius: 14px;
+            padding: 0.9rem 1.2rem;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            border-left: 4px solid #c53030;
+            font-weight: 500;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .info-text {
+            margin-top: 1.8rem;
+            font-size: 0.8rem;
+            color: #5e7a8c;
+            text-align: center;
+            background: #f0f6fa;
+            padding: 0.8rem;
+            border-radius: 14px;
+        }
+
+        .btn .spinner {
+            border-top-color: white;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            width: 1.2rem;
+            height: 1.2rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .card { padding: 1.8rem 1.2rem; }
+            h1 { font-size: 1.6rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <!-- Écran de chargement initial (vérification auth + Firestore) -->
+            <div id="initLoader" class="loader-init">
+                <div class="spinner spinner-large"></div>
+                <p style="font-weight: 500;">Chargement de votre configuration...</p>
+            </div>
+
+            <!-- Contenu principal (caché tant que non autorisé) -->
+            <div id="mainContent" class="hidden">
+                <h1>⚙️ Configuration</h1>
+                <div class="subhead">Finalisons votre compte</div>
+
+                <!-- SECTION 1 : Établissement -->
+                <div id="section1" class="section">
+                    <div class="form-group">
+                        <label for="schoolName">Nom de l'établissement</label>
+                        <input type="text" id="schoolName" placeholder="Ex: Lycée Victor Hugo" autocomplete="off">
+                    </div>
+                    <button id="btnNext" class="btn">Suivant →</button>
+                </div>
+
+                <!-- SECTION 2 : Coordonnées et options (cachée au début) -->
+                <div id="section2" class="section section-hidden">
+                    <div class="form-group">
+                        <label for="phone">Numéro de téléphone</label>
+                        <input type="tel" id="phone" placeholder="Ex: 01 23 45 67 89" autocomplete="off">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Système de notation</label>
+                        <div class="radio-group">
+                            <label class="label-radio">
+                                <input type="radio" name="gradingSystem" value="20" checked> Sur 20
+                            </label>
+                            <label class="label-radio">
+                                <input type="radio" name="gradingSystem" value="60"> Sur 60
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Type de forfait</label>
+                        <div class="radio-group">
+                            <label class="label-radio">
+                                <input type="radio" name="plan" value="basic" checked> Basic
+                            </label>
+                            <label class="label-radio">
+                                <input type="radio" name="plan" value="smart"> Smart
+                            </label>
+                        </div>
+                    </div>
+
+                    <button id="btnFinish" class="btn">Terminer</button>
+                    <button id="btnBack" class="btn btn-outline" style="margin-top: 0.8rem;">← Retour</button>
+                </div>
+
+                <!-- Zone message d'erreur global -->
+                <div id="errorBox" class="error-message"></div>
+                <div class="info-text">
+                    Toutes les informations sont sécurisées
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // ---------- FIREBASE v9 MODULAR ----------
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+        // ---------- CONFIGURATION ----------
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7B-0O9mOdbIDQV-g6hsZx07G2ZvzKoxo",
+            authDomain: "real-educsen.firebaseapp.com",
+            projectId: "real-educsen",
+            storageBucket: "real-educsen.firebasestorage.app",
+            messagingSenderId: "80660233362",
+            appId: "1:80660233362:web:5edf5060254170056eba4b"
+        };
+
+        // Initialisation Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // ---------- ÉLÉMENTS DOM ----------
+        const initLoader = document.getElementById('initLoader');
+        const mainContent = document.getElementById('mainContent');
+        const section1 = document.getElementById('section1');
+        const section2 = document.getElementById('section2');
+        const btnNext = document.getElementById('btnNext');
+        const btnBack = document.getElementById('btnBack');
+        const btnFinish = document.getElementById('btnFinish');
+        const schoolNameInput = document.getElementById('schoolName');
+        const phoneInput = document.getElementById('phone');
+        const gradingRadios = document.querySelectorAll('input[name="gradingSystem"]');
+        const planRadios = document.querySelectorAll('input[name="plan"]');
+        const errorBox = document.getElementById('errorBox');
+
+        // Variable pour stocker l'utilisateur courant
+        let currentUser = null;
+
+        // ---------- VÉRIFICATION AUTH + isConfigured ----------
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                // Non connecté → inscription
+                window.location.replace('inscription.html');
+                return;
+            }
+
+            currentUser = user;
+
+            try {
+                // Récupérer le document users/{uid}
+                const userDocRef = doc(db, 'users', user.uid);
+                const userSnap = await getDoc(userDocRef);
+
+                if (!userSnap.exists()) {
+                    // Normalement ce doc existe déjà (créé dans createcodesecret.html)
+                    // Si absent, rediriger vers création de code
+                    window.location.replace('createcodesecret.html');
+                    return;
+                }
+
+                const userData = userSnap.data();
+
+                // Si déjà configuré → accueil
+                if (userData.isConfigured === true) {
+window.location.replace('userdashboard.html');
+
+                    return;
+                }
+
+                // Sinon, afficher le formulaire de configuration
+                initLoader.style.display = 'none';
+                mainContent.classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Erreur Firestore:', error);
+                // En cas d'erreur, rediriger vers inscription par sécurité
+                window.location.replace('inscription.html');
+            }
+        });
+
+        // ---------- VALIDATION EN TEMPS RÉEL (activation boutons) ----------
+        function validateSection1() {
+            return schoolNameInput.value.trim() !== '';
+        }
+
+        function validateSection2() {
+            const phoneValid = phoneInput.value.trim() !== '';
+            // Les radios ont toujours une valeur sélectionnée (checked par défaut)
+            return phoneValid;
+        }
+
+        function updateNextButton() {
+            btnNext.disabled = !validateSection1();
+        }
+
+        function updateFinishButton() {
+            btnFinish.disabled = !validateSection2();
+        }
+
+        schoolNameInput.addEventListener('input', updateNextButton);
+        phoneInput.addEventListener('input', updateFinishButton);
+
+        // Initial validation
+        updateNextButton();
+        updateFinishButton();
+
+        // ---------- TRANSITION SECTION 1 → 2 ----------
+        btnNext.addEventListener('click', () => {
+            if (!validateSection1()) {
+                showError('Veuillez saisir le nom de l\'établissement.');
+                schoolNameInput.classList.add('error');
+                return;
+            }
+            schoolNameInput.classList.remove('error');
+            errorBox.classList.remove('show');
+
+            // Animation
+            section1.classList.add('section-hidden');
+            section2.classList.remove('section-hidden');
+        });
+
+        // Retour section 2 → 1
+        btnBack.addEventListener('click', () => {
+            section2.classList.add('section-hidden');
+            section1.classList.remove('section-hidden');
+            errorBox.classList.remove('show');
+        });
+
+        // ---------- ENREGISTREMENT FINAL ----------
+        btnFinish.addEventListener('click', async () => {
+            // Validation des champs section2
+            if (!validateSection2()) {
+                showError('Le numéro de téléphone est obligatoire.');
+                phoneInput.classList.add('error');
+                return;
+            }
+            phoneInput.classList.remove('error');
+            errorBox.classList.remove('show');
+
+            // Vérifier que l'utilisateur est toujours connecté
+            if (!currentUser) {
+                window.location.replace('inscription.html');
+                return;
+            }
+
+            // Récupérer les valeurs
+            const uid = currentUser.uid;
+            const email = currentUser.email;
+            const schoolName = schoolNameInput.value.trim();
+            const phone = phoneInput.value.trim();
+            
+            // Récupérer la valeur du système de notation
+            let gradingSystem = '20'; // défaut
+            for (let radio of gradingRadios) {
+                if (radio.checked) {
+                    gradingSystem = radio.value;
+                    break;
+                }
+            }
+
+            // Récupérer le forfait
+            let plan = 'basic';
+            for (let radio of planRadios) {
+                if (radio.checked) {
+                    plan = radio.value;
+                    break;
+                }
+            }
+
+            // Activer le loader sur le bouton
+            setLoadingState(true);
+
+            try {
+                // 1. Créer / mettre à jour le document dans 'details' avec l'ID = uid
+                const detailsDocRef = doc(db, 'details', uid);
+                await setDoc(detailsDocRef, {
+                    uid: uid,
+                    email: email,
+                    schoolName: schoolName,
+                    phone: phone,
+                    gradingSystem: gradingSystem,   // "20" ou "60"
+                    plan: plan,                     // "basic" ou "smart"
+                    createdAt: serverTimestamp()
+                });
+
+                // 2. Mettre à jour le document 'users/{uid}' : isConfigured = true
+                const userDocRef = doc(db, 'users', uid);
+                await setDoc(userDocRef, { isConfigured: true }, { merge: true });
+
+                // 3. Redirection vers accueil.html
+                window.location.replace('userdashboard.html');
+
+            } catch (error) {
+                console.error('Erreur lors de l\'enregistrement:', error);
+                setLoadingState(false);
+
+                let message = 'Impossible de finaliser la configuration.';
+                if (error.code === 'permission-denied') {
+                    message = 'Vous n\'avez pas les droits nécessaires.';
+                } else if (error.code === 'unavailable') {
+                    message = 'Service indisponible. Vérifiez votre connexion.';
+                }
+                showError(message);
+            }
+        });
+
+        // ---------- FONCTIONS UTILITAIRES ----------
+        function showError(msg) {
+            errorBox.textContent = `❌ ${msg}`;
+            errorBox.classList.add('show');
+        }
+
+        function setLoadingState(isLoading) {
+            if (isLoading) {
+                btnFinish.disabled = true;
+                // Ajouter spinner au bouton
+              
+                btnFinish.innerHTML = '<span class="spinner"></span> Enregistrement...';
+            } else {
+                btnFinish.innerHTML = 'Terminer';
+                btnFinish.disabled = !validateSection2();
+            }
+        }
+
+        // Nettoyer classe error lors de la frappe
+        schoolNameInput.addEventListener('input', () => schoolNameInput.classList.remove('error'));
+        phoneInput.addEventListener('input', () => phoneInput.classList.remove('error'));
+    </script>
+</body>
+</html>

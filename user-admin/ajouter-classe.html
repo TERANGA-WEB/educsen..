@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <title>Edusen · Création de classe</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ===== STYLE EXISTANT (CONSERVÉ) ===== */
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --secondary: #10b981;
+            --secondary-dark: #059669;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --gray: #64748b;
+            --gray-light: #e2e8f0;
+            --gradient: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: var(--dark);
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .logo-text span {
+            color: var(--primary);
+        }
+
+        .nav-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex: 1;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            margin-right: 40px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--gray);
+            font-weight: 500;
+            font-size: 1rem;
+            transition: var(--transition);
+            padding: 8px 0;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .language-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--gray);
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: var(--transition);
+            white-space: nowrap;
+        }
+
+        .language-selector:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 0 40px;
+        }
+
+        .back-btn {
+            margin-bottom: 1.5rem;
+            align-self: flex-start;
+        }
+
+        .stepper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            background: white;
+            padding: 0.6rem 0.8rem;
+            border-radius: 60px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--gray-light);
+            margin: 0 auto 40px;
+            width: fit-content;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.55rem 1.8rem;
+            border-radius: 40px;
+            font-weight: 600;
+            transition: var(--transition);
+            background: transparent;
+            color: var(--gray);
+            cursor: default;
+        }
+
+        .step-item i {
+            font-size: 1.15rem;
+            color: var(--gray);
+        }
+
+        .step-item.active {
+            background: var(--gradient);
+            color: white;
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15);
+        }
+
+        .step-item.active i {
+            color: white;
+        }
+
+        .section-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            transition: opacity 0.25s, transform 0.3s ease;
+            border: 1px solid var(--gray-light);
+            margin-bottom: 1.5rem;
+        }
+
+        .section-hidden {
+            display: none;
+        }
+
+        .section-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            color: var(--dark);
+            border-bottom: 2px solid var(--gray-light);
+            padding-bottom: 1rem;
+        }
+
+        .section-title i {
+            background: var(--gradient);
+            padding: 0.5rem;
+            border-radius: 12px;
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--gray);
+            margin-left: 0.3rem;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            padding: 1rem 1.4rem;
+            border: 1.5px solid var(--gray-light);
+            border-radius: 44px;
+            font-size: 0.98rem;
+            background: white;
+            transition: 0.18s ease;
+            font-weight: 450;
+            color: var(--dark);
+            width: 100%;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+            background: white;
+        }
+
+        .text-small {
+            font-size: 0.85rem;
+            color: var(--gray);
+            margin-left: 0.4rem;
+        }
+
+        .subjects-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .subject-card {
+            background: #f9fafc;
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid var(--gray-light);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.02);
+            position: relative;
+        }
+
+        .subject-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .subject-title {
+            font-weight: 600;
+            color: var(--primary-dark);
+            font-size: 1.1rem;
+        }
+
+        .btn-remove-card {
+            background: transparent;
+            border: none;
+            color: var(--gray);
+            font-size: 1.3rem;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.18s;
+        }
+
+        .btn-remove-card:hover {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        .subject-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .subject-row .subject-name-input {
+            flex: 2;
+            min-width: 200px;
+        }
+
+        .subject-row .prof-select {
+            flex: 3;
+            min-width: 250px;
+        }
+
+        .btn-create-prof {
+            background: white;
+            border: 1.8px dashed var(--primary);
+            color: var(--primary);
+            padding: 0.8rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 0.5rem;
+        }
+
+        .btn-create-prof:hover {
+            background: #f0f9ff;
+            border-color: var(--primary-dark);
+        }
+
+        .btn-add {
+            background: white;
+            border: 1.8px dashed var(--primary);
+            color: var(--primary);
+            padding: 0.9rem 2rem;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 0.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-add:hover {
+            background: #f0f9ff;
+            border-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-card {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray);
+        }
+
+        .modal-close:hover {
+            color: var(--danger, #ef4444);
+        }
+
+        .modal-form .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--gray);
+            border: 1px solid var(--gray-light);
+            padding: 0.8rem 1.8rem;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-secondary:hover {
+            background: #f1f5f9;
+        }
+
+        .student-badge {
+            background: #dbeafe;
+            border-radius: 60px;
+            padding: 0.7rem 1.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            margin-bottom: 2.2rem;
+            font-size: 0.95rem;
+        }
+
+        .students-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1.1rem;
+            max-height: 440px;
+            overflow-y: auto;
+            padding: 0.2rem 0.3rem 0.2rem 0.1rem;
+        }
+
+        .student-entry {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            background: white;
+            padding: 0.9rem 1.3rem;
+            border-radius: 100px;
+            border: 1px solid var(--gray-light);
+            transition: var(--transition);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.01);
+        }
+
+        .student-entry:hover {
+            background: #f8fafc;
+            border-color: var(--primary);
+            box-shadow: 0 8px 18px -10px rgba(59,130,246,0.2);
+        }
+
+        .student-index {
+            font-weight: 700;
+            background: #dbeafe;
+            color: var(--primary-dark);
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 18px;
+            border: 1px solid white;
+            font-size: 0.95rem;
+        }
+
+        .student-entry input {
+            flex: 1 1 180px;
+            padding: 0.7rem 1.2rem;
+            border-radius: 40px;
+            border: 1px solid var(--gray-light);
+            background: white;
+            transition: 0.15s;
+        }
+
+        .student-entry input:focus {
+            background: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.08);
+        }
+
+        .students-grid::-webkit-scrollbar {
+            width: 8px;
+        }
+        .students-grid::-webkit-scrollbar-track {
+            background: #eef2f6;
+            border-radius: 20px;
+        }
+        .students-grid::-webkit-scrollbar-thumb {
+            background: #b9c7d9;
+            border-radius: 20px;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2.8rem;
+            gap: 1.2rem;
+        }
+
+        .btn {
+            border: none;
+            padding: 0.9rem 2.2rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-outline {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-outline:hover {
+            background: #f0f9ff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-area {
+            margin-top: 2rem;
+            padding: 1.3rem 2rem;
+            border-radius: 12px;
+            font-weight: 500;
+            background: white;
+            border: 1px solid var(--gray-light);
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .message-area.success {
+            background: #ecfdf5;
+            border-left: 6px solid var(--secondary);
+            color: #065f46;
+        }
+
+        .message-area.error {
+            background: #fef2f2;
+            border-left: 6px solid #ef4444;
+            color: #991b1b;
+        }
+
+        .message-area.info {
+            background: #eff6ff;
+            border-left: 6px solid var(--primary);
+            color: #1e3a8a;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            color: var(--gray);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--gray-light);
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            .logo-container {
+                width: 100%;
+                justify-content: center;
+            }
+            .nav-container {
+                width: 100%;
+                justify-content: center;
+            }
+            .nav-links {
+                margin-right: 0;
+                gap: 30px;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .stepper {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .step-item {
+                padding: 0.5rem 1.2rem;
+            }
+            .btn {
+                padding: 0.8rem 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stepper {
+                flex-direction: column;
+                background: transparent;
+                box-shadow: none;
+                gap: 0.5rem;
+            }
+            .step-item {
+                width: 100%;
+                justify-content: center;
+                background: white;
+                border: 1px solid var(--gray-light);
+            }
+            .nav-links {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        .section-card:not(.section-hidden) {
+            animation: fadeSlide 0.35s ease-out;
+        }
+        @keyframes fadeSlide {
+            0% { opacity: 0.8; transform: translateY(6px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <a href="#" class="logo" onclick="return false;">
+                    <div class="logo-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="logo-text">Edu<span>sen</span></div>
+                </a>
+            </div>
+            <div class="nav-container">
+                <nav class="nav-links">
+                    <a href="/contact.html">Contact</a>
+                    <a href="Aide.html">Aide</a>
+                </nav>
+            </div>
+        </header>
+
+        <main>
+            <button id="backBtn" class="btn btn-outline back-btn">
+                <i class="fas fa-arrow-left"></i> Retour
+            </button>
+
+            <div class="stepper">
+                <div class="step-item active" id="step1Indicator">
+                    <i class="fas fa-chalkboard"></i>
+                    <span>Classe</span>
+                </div>
+                <div class="step-item" id="step2Indicator">
+                    <i class="fas fa-user-graduate"></i>
+                    <span>Élèves</span>
+                </div>
+            </div>
+
+            <!-- SECTION 1 : INFOS CLASSE -->
+            <div id="section1" class="section-card">
+                <div class="section-title">
+                    <i class="fas fa-school"></i> Informations de la classe
+                </div>
+
+                <div class="form-group">
+                    <label for="className">Nom de la classe</label>
+                    <input type="text" id="className" placeholder="Ex : 3ème A, CP, Terminale S..." autocomplete="off">
+                </div>
+
+                <div class="form-group">
+                    <label>Matières et professeurs</label>
+                    <div id="subjectsContainer" class="subjects-list"></div>
+                    <button type="button" id="addSubjectBtn" class="btn-add">
+                        <i class="fas fa-plus-circle"></i> Ajouter une matière
+                    </button>
+                </div>
+
+                <div class="form-group">
+                    <label for="numStudents">Nombre d'élèves</label>
+                    <input type="number" id="numStudents" min="1" max="60" step="1" value="12">
+                    <span class="text-small">
+                        <i class="fas fa-arrows-alt-h"></i> Ajustez pour générer les fiches élèves
+                    </span>
+                </div>
+
+                <div class="navigation-buttons">
+                    <span></span>
+                    <button id="nextBtn" class="btn btn-primary">
+                        Suivant <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- SECTION 2 : LISTE ÉLÈVES -->
+            <div id="section2" class="section-card section-hidden">
+                <div class="section-title">
+                    <i class="fas fa-users"></i> Liste des élèves
+                </div>
+
+                <div class="student-badge">
+                    <i class="fas fa-user-friends"></i> Total élèves : <span id="studentCountValue">12</span>
+                </div>
+
+                <div id="studentsListContainer" class="students-grid"></div>
+                
+                <div class="text-small" style="margin: 1.2rem 0 0.8rem;">
+                    <i class="fas fa-info-circle"></i> Tous les noms et prénoms sont requis.
+                </div>
+
+                <div class="navigation-buttons">
+                    <button id="prevBtn" class="btn btn-outline">
+                        <i class="fas fa-arrow-left"></i> Précédent
+                    </button>
+                    <button id="saveClassBtn" class="btn btn-primary" disabled>
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </div>
+
+            <!-- Zone de message -->
+            <div id="messageBox" class="message-area">
+                <i class="fas fa-plug"></i> 🔐 Connectez-vous pour commencer.
+            </div>
+        </main>
+
+        <footer>
+            <p>Edusen © 2023 - Tous droits réservés</p>
+            <p>Plateforme de gestion académique pour les établissements scolaires</p>
+        </footer>
+    </div>
+
+    <!-- MODALE DE CRÉATION DE PROFESSEUR -->
+    <div id="professorModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Créer un professeur</h3>
+                <button class="modal-close" id="modalCloseBtn"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-form">
+                <div class="form-group">
+                    <label for="modalPrenom">Prénom</label>
+                    <input type="text" id="modalPrenom" placeholder="Ex : Jean">
+                </div>
+                <div class="form-group">
+                    <label for="modalNom">Nom</label>
+                    <input type="text" id="modalNom" placeholder="Ex : Dupont">
+                </div>
+                <div class="form-group">
+                    <label for="modalMatiere">Matière enseignée</label>
+                    <input type="text" id="modalMatiere" placeholder="Ex : Mathématiques">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="modalCancelBtn">Annuler</button>
+                <button class="btn-primary" id="modalSaveBtn">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase imports -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js",
+                "firebase/auth": "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        // -------------------------------------------------------------
+        // 1. IMPORTS FIREBASE (addDoc ajouté)
+        // -------------------------------------------------------------
+        import { initializeApp } from 'firebase/app';
+        import { getAuth, onAuthStateChanged } from 'firebase/auth';
+        import {
+            getFirestore,
+            collection,
+            doc,
+            writeBatch,
+            serverTimestamp,
+            getDocs,
+            query,
+            where,
+            arrayUnion,
+            addDoc
+        } from 'firebase/firestore';
+
+        // -------------------------------------------------------------
+        // 2. CONFIGURATION FIREBASE
+        // -------------------------------------------------------------
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7B-0O9mOdbIDQV-g6hsZx07G2ZvzKoxo",
+            authDomain: "real-educsen.firebaseapp.com",
+            projectId: "real-educsen",
+            storageBucket: "real-educsen.firebasestorage.app",
+            messagingSenderId: "80660233362",
+            appId: "1:80660233362:web:5edf5060254170056eba4b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // -------------------------------------------------------------
+        // 3. ÉTAT GLOBAL
+        // -------------------------------------------------------------
+        let currentUser = null;
+        let saveInProgress = false;
+        let professorsList = []; // Chaque élément : { id, nom, matiere }
+        let subjects = [];
+        let numStudents = 12;
+        let currentSubjectIndex = null;
+        let initialSubjectsAndProfessorsLoaded = false;
+
+        // -------------------------------------------------------------
+        // 4. RÉFÉRENCES DOM
+        // -------------------------------------------------------------
+        const section1 = document.getElementById('section1');
+        const section2 = document.getElementById('section2');
+        const step1Indicator = document.getElementById('step1Indicator');
+        const step2Indicator = document.getElementById('step2Indicator');
+        const classNameInput = document.getElementById('className');
+        const numStudentsInput = document.getElementById('numStudents');
+        const subjectsContainer = document.getElementById('subjectsContainer');
+        const addSubjectBtn = document.getElementById('addSubjectBtn');
+        const studentsListContainer = document.getElementById('studentsListContainer');
+        const studentCountSpan = document.getElementById('studentCountValue');
+        const nextBtn = document.getElementById('nextBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const saveBtn = document.getElementById('saveClassBtn');
+        const messageBox = document.getElementById('messageBox');
+        const backBtn = document.getElementById('backBtn');
+
+        const modalOverlay = document.getElementById('professorModal');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const modalSaveBtn = document.getElementById('modalSaveBtn');
+        const modalPrenom = document.getElementById('modalPrenom');
+        const modalNom = document.getElementById('modalNom');
+        const modalMatiere = document.getElementById('modalMatiere');
+
+        // -------------------------------------------------------------
+        // 5. CHARGEMENT DES PROFESSEURS (avec matière)
+        // -------------------------------------------------------------
+        async function loadProfessors() {
+            if (!currentUser) return;
+            try {
+                const q = query(collection(db, 'classes'), where('createdBy', '==', currentUser.uid));
+                const snapshot = await getDocs(q);
+                
+                // Map pour dédoublonner : key = professeurId, value = { nom, matiere (première rencontrée) }
+                const professorsMap = new Map();
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.matieres && Array.isArray(data.matieres)) {
+                        data.matieres.forEach(matiere => {
+                            if (matiere.professeurId && matiere.professeurNom) {
+                                if (!professorsMap.has(matiere.professeurId)) {
+                                    professorsMap.set(matiere.professeurId, {
+                                        id: matiere.professeurId,
+                                        nom: matiere.professeurNom,
+                                        matiere: matiere.nom || '' // on stocke la matière associée
+                                    });
+                                }
+                            }
+                        });
+                    }
+                });
+                
+                professorsList = Array.from(professorsMap.values());
+                
+            } catch (error) {
+                console.error('Erreur chargement professeurs:', error);
+                showMessage('Erreur lors du chargement des professeurs.', 'error');
+            }
+        }
+
+        // -------------------------------------------------------------
+        // 6. RENDU DES MATIÈRES (avec préremplissage automatique)
+        // -------------------------------------------------------------
+        function renderSubjects() {
+            subjectsContainer.innerHTML = '';
+            subjects.forEach((subject, index) => {
+                const card = document.createElement('div');
+                card.className = 'subject-card';
+
+                const header = document.createElement('div');
+                header.className = 'subject-header';
+                header.innerHTML = `<span class="subject-title">Matière ${index + 1}</span>`;
+                if (subjects.length > 1) {
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'btn-remove-card';
+                    removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                    removeBtn.addEventListener('click', () => {
+                        subjects.splice(index, 1);
+                        renderSubjects();
+                    });
+                    header.appendChild(removeBtn);
+                }
+                card.appendChild(header);
+
+                const nameInput = document.createElement('input');
+                nameInput.type = 'text';
+                nameInput.className = 'subject-name-input';
+                nameInput.placeholder = 'Nom de la matière';
+                nameInput.value = subject.name || '';
+                nameInput.addEventListener('input', (e) => {
+                    subject.name = e.target.value;
+                });
+
+                const select = document.createElement('select');
+                select.className = 'prof-select';
+                // Remplir les options
+                function updateSelectOptions() {
+                    select.innerHTML = '<option value="">-- Aucun professeur assigné --</option>';
+                    professorsList.forEach(p => {
+                        const option = document.createElement('option');
+                        option.value = p.id;
+                        option.textContent = p.nom || 'Nom inconnu';
+                        if (p.id === subject.professorId) option.selected = true;
+                        select.appendChild(option);
+                    });
+                }
+                updateSelectOptions();
+
+                // Écouteur pour préremplir la matière lors du changement
+                select.addEventListener('change', (e) => {
+                    const selectedId = e.target.value;
+                    if (selectedId) {
+                        const prof = professorsList.find(p => p.id === selectedId);
+                        subject.professorId = prof.id;
+                        subject.professorName = prof.nom;
+                        // Préremplir le nom de la matière avec celle du professeur (si disponible)
+                        if (prof.matiere) {
+                            subject.name = prof.matiere;
+                            nameInput.value = prof.matiere;
+                        }
+                    } else {
+                        subject.professorId = null;
+                        subject.professorName = null;
+                    }
+                });
+
+                const createBtn = document.createElement('button');
+                createBtn.className = 'btn-create-prof';
+                createBtn.innerHTML = '<i class="fas fa-user-plus"></i> Créer un professeur';
+                createBtn.addEventListener('click', () => {
+                    currentSubjectIndex = index;
+                    modalMatiere.value = subject.name || '';
+                    modalOverlay.style.display = 'flex';
+                });
+
+                const row = document.createElement('div');
+                row.className = 'subject-row';
+                row.appendChild(nameInput);
+                row.appendChild(select);
+                card.appendChild(row);
+                card.appendChild(createBtn);
+                subjectsContainer.appendChild(card);
+            });
+        }
+
+        // -------------------------------------------------------------
+        // 7. GESTION DE LA MODALE (AVEC VÉRIFICATION DOUBLONS)
+        // -------------------------------------------------------------
+        function closeModal() {
+            modalOverlay.style.display = 'none';
+            modalPrenom.value = '';
+            modalNom.value = '';
+            modalMatiere.value = '';
+            currentSubjectIndex = null;
+        }
+
+        async function saveNewProfessor() {
+            const prenom = modalPrenom.value.trim();
+            const nom = modalNom.value.trim();
+            const matiere = modalMatiere.value.trim();
+
+            if (!prenom || !nom || !matiere) {
+                alert('Veuillez remplir tous les champs.');
+                return;
+            }
+            if (!currentUser) {
+                alert('Utilisateur non connecté.');
+                return;
+            }
+
+            modalSaveBtn.disabled = true;
+            const originalText = modalSaveBtn.textContent;
+            modalSaveBtn.textContent = 'Vérification...';
+
+            try {
+                // Vérifier l'existence d'un professeur avec les mêmes nom, prénom, matière
+                const q = query(
+                    collection(db, 'professeurs'),
+                    where('createdBy', '==', currentUser.uid),
+                    where('nom', '==', nom),
+                    where('prenom', '==', prenom),
+                    where('matiere', '==', matiere)
+                );
+                const querySnapshot = await getDocs(q);
+
+                let professorId, professorName;
+
+                if (!querySnapshot.empty) {
+                    // Professeur existant
+                    const existingDoc = querySnapshot.docs[0];
+                    professorId = existingDoc.id;
+                    const data = existingDoc.data();
+                    professorName = `${data.prenom || ''} ${data.nom || ''}`.trim();
+                    console.log('Professeur existant trouvé, utilisation de:', professorId);
+                    showMessage('Professeur déjà existant, utilisation de celui-ci.', 'info');
+                } else {
+                    // Création
+                    const profData = {
+                        prenom,
+                        nom,
+                        matiere,
+                        createdBy: currentUser.uid,
+                        classes: [],
+                        createdAt: serverTimestamp()
+                    };
+                    const docRef = await addDoc(collection(db, 'professeurs'), profData);
+                    professorId = docRef.id;
+                    professorName = `${prenom} ${nom}`;
+                    console.log('Nouveau professeur créé avec ID:', docRef.id);
+                    // Ajouter à professorsList avec la matière
+                    professorsList.push({ id: docRef.id, nom: professorName, matiere });
+                }
+
+                // Associer à la matière courante
+                if (currentSubjectIndex !== null && subjects[currentSubjectIndex]) {
+                    subjects[currentSubjectIndex].professorId = professorId;
+                    subjects[currentSubjectIndex].professorName = professorName;
+                    // Préremplir le nom de la matière
+                    subjects[currentSubjectIndex].name = matiere;
+                }
+
+                renderSubjects();
+                closeModal();
+            } catch (error) {
+                console.error('Erreur lors de la création/recherche du professeur:', error);
+                alert('Erreur lors de l\'opération.');
+            } finally {
+                modalSaveBtn.disabled = false;
+                modalSaveBtn.textContent = originalText;
+            }
+        }
+
+        // -------------------------------------------------------------
+        // 8. FONCTIONS ÉLÈVES (inchangées)
+        // -------------------------------------------------------------
+        function createStudentEntry(index) {
+            const entry = document.createElement('div');
+            entry.className = 'student-entry';
+            entry.innerHTML = `
+                <span class="student-index">${index + 1}</span>
+                <input type="text" class="student-nom" placeholder="Nom">
+                <input type="text" class="student-prenom" placeholder="Prénom">
+            `;
+            return entry;
+        }
+
+        function renderStudents(count) {
+            studentsListContainer.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                studentsListContainer.appendChild(createStudentEntry(i));
+            }
+            updateStudentBadge();
+        }
+
+        function updateStudentBadge() {
+            studentCountSpan.textContent = studentsListContainer.children.length;
+        }
+
+        function handleNumStudentsChange(e) {
+            const newVal = parseInt(e.target.value, 10);
+            if (!isNaN(newVal) && newVal >= 1 && newVal <= 60) {
+                numStudents = newVal;
+                if (!section2.classList.contains('section-hidden')) {
+                    renderStudents(numStudents);
+                }
+            } else {
+                e.target.value = numStudents;
+            }
+        }
+
+        // -------------------------------------------------------------
+        // 9. NAVIGATION
+        // -------------------------------------------------------------
+        function showSection1() {
+            section1.classList.remove('section-hidden');
+            section2.classList.add('section-hidden');
+            step1Indicator.classList.add('active');
+            step2Indicator.classList.remove('active');
+        }
+
+        function showSection2() {
+            renderStudents(numStudents);
+            section1.classList.add('section-hidden');
+            section2.classList.remove('section-hidden');
+            step1Indicator.classList.remove('active');
+            step2Indicator.classList.add('active');
+        }
+
+        // -------------------------------------------------------------
+        // 10. VALIDATION
+        // -------------------------------------------------------------
+        function validateForm() {
+            const errors = [];
+
+            const className = classNameInput.value.trim();
+            if (!className) errors.push('Le nom de la classe est obligatoire.');
+
+            if (subjects.length === 0) {
+                errors.push('Ajoutez au moins une matière.');
+            } else {
+                const names = subjects.map(s => s.name.trim().toLowerCase()).filter(n => n !== '');
+                if (names.length === 0) errors.push('Chaque matière doit avoir un nom.');
+                if (new Set(names).size !== names.length) errors.push('Les noms de matières ne doivent pas être en double.');
+            }
+
+            const studentEntries = studentsListContainer.children;
+            if (studentEntries.length === 0) {
+                errors.push('Aucun élève généré.');
+            } else {
+                const seen = new Set();
+                for (let i = 0; i < studentEntries.length; i++) {
+                    const nom = studentEntries[i].querySelector('.student-nom')?.value.trim() || '';
+                    const prenom = studentEntries[i].querySelector('.student-prenom')?.value.trim() || '';
+                    if (!nom || !prenom) {
+                        errors.push(`Élève ${i + 1} : le nom et le prénom sont obligatoires.`);
+                    } else {
+                        const key = `${nom.toLowerCase()}|${prenom.toLowerCase()}`;
+                        if (seen.has(key)) {
+                            errors.push(`Doublon : ${nom} ${prenom}.`);
+                        } else {
+                            seen.add(key);
+                        }
+                    }
+                }
+            }
+
+            if (!currentUser) errors.push('Vous devez être connecté.');
+
+            return { isValid: errors.length === 0, errors };
+        }
+
+        // -------------------------------------------------------------
+        // 11. SAUVEGARDE (BATCH)
+        // -------------------------------------------------------------
+        async function saveClass() {
+            if (saveInProgress) return;
+            const validation = validateForm();
+            if (!validation.isValid) {
+                showMessage(validation.errors.join(' • '), 'error');
+                return;
+            }
+
+            saveInProgress = true;
+            saveBtn.disabled = true;
+            showMessage('Sauvegarde en cours...', 'info');
+
+            try {
+                const cleanClassName = classNameInput.value.trim();
+                const studentsData = [];
+                for (let i = 0; i < studentsListContainer.children.length; i++) {
+                    const entry = studentsListContainer.children[i];
+                    studentsData.push({
+                        nom: entry.querySelector('.student-nom').value.trim(),
+                        prenom: entry.querySelector('.student-prenom').value.trim()
+                    });
+                }
+
+                const matieresArray = subjects
+                    .map(s => ({
+                        nom: s.name.trim(),
+                        professeurId: s.professorId || null,
+                        professeurNom: s.professorName || null
+                    }))
+                    .filter(m => m.nom !== '');
+
+                const batch = writeBatch(db);
+
+                const classRef = doc(collection(db, 'classes'));
+                batch.set(classRef, {
+                    id: classRef.id,
+                    nomClasse: cleanClassName,
+                    matieres: matieresArray,
+                    nombreEleves: studentsData.length,
+                    createdBy: currentUser.uid,
+                    createdAt: serverTimestamp()
+                });
+
+                const elevesColRef = collection(db, 'classes', classRef.id, 'eleves');
+                for (const student of studentsData) {
+                    const eleveRef = doc(elevesColRef);
+                    batch.set(eleveRef, {
+                        id: eleveRef.id,
+                        nom: student.nom,
+                        prenom: student.prenom,
+                        classeId: classRef.id,
+                        createdAt: serverTimestamp()
+                    });
+                }
+
+                const updatedProfessors = new Set();
+                matieresArray.forEach(m => {
+                    if (m.professeurId) updatedProfessors.add(m.professeurId);
+                });
+
+                for (const profId of updatedProfessors) {
+                    const profRef = doc(db, 'professeurs', profId);
+                 batch.set(profRef, {
+    classes: arrayUnion(classRef.id)
+}, { merge: true });
+                }
+
+                await batch.commit();
+
+                showMessage(
+                    '✅ Classe enregistrée avec succès ! <button id="goDashboard" class="btn btn-primary" style="margin-left: 1rem; font-size:0.9rem;">Aller au Dashboard</button>',
+                    'success'
+                );
+
+                setTimeout(() => {
+                    document.getElementById('goDashboard')?.addEventListener('click', () => {
+                        window.location.href = '/userdashboard.html';
+                    });
+                }, 50);
+
+                console.log('Classe créée :', classRef.id);
+            } catch (error) {
+                console.error('Erreur sauvegarde:', error);
+                showMessage('Erreur lors de la sauvegarde.', 'error');
+            } finally {
+                saveInProgress = false;
+                saveBtn.disabled = false;
+                if (!currentUser) saveBtn.disabled = true;
+            }
+        }
+
+        // -------------------------------------------------------------
+        // 12. AUTHENTIFICATION
+        // -------------------------------------------------------------
+        const mainContent = document.querySelector('main');
+
+        onAuthStateChanged(auth, async (user) => {
+            currentUser = user;
+            if (user) {
+                mainContent.style.display = 'block';
+                showMessage(`<i class="fas fa-check-circle"></i> Connecté : ${user.email}`, 'success');
+                saveBtn.disabled = false;
+
+                await loadProfessors();
+
+                if (!initialSubjectsAndProfessorsLoaded) {
+                    subjects = [{ name: '', professorId: null, professorName: null }];
+                    initialSubjectsAndProfessorsLoaded = true;
+                }
+                renderSubjects();
+
+            } else {
+                mainContent.style.display = 'none';
+                showMessage('<i class="fas fa-plug"></i> 🔐 Veuillez vous connecter pour enregistrer.', 'error');
+                saveBtn.disabled = true;
+                subjects = [];
+                professorsList = [];
+                initialSubjectsAndProfessorsLoaded = false;
+                renderSubjects();
+                setTimeout(() => {
+                    window.location.href = 'connexion.html';
+                }, 500);
+            }
+        });
+
+        // -------------------------------------------------------------
+        // 13. AFFICHAGE DES MESSAGES
+        // -------------------------------------------------------------
+        function showMessage(msg, type = 'info') {
+            messageBox.innerHTML = msg;
+            messageBox.className = 'message-area';
+            if (type === 'success') messageBox.classList.add('success');
+            if (type === 'error') messageBox.classList.add('error');
+            if (type === 'info') messageBox.classList.add('info');
+        }
+
+        // -------------------------------------------------------------
+        // 14. INITIALISATION
+        // -------------------------------------------------------------
+        function initApp() {
+            numStudentsInput.value = 12;
+            numStudents = 12;
+            renderStudents(12);
+
+            numStudentsInput.addEventListener('input', handleNumStudentsChange);
+            addSubjectBtn.addEventListener('click', () => {
+                subjects.push({ name: '', professorId: null, professorName: null });
+                renderSubjects();
+            });
+            nextBtn.addEventListener('click', showSection2);
+            prevBtn.addEventListener('click', showSection1);
+            saveBtn.addEventListener('click', saveClass);
+            backBtn.addEventListener('click', () => window.history.back());
+
+            modalCloseBtn.addEventListener('click', closeModal);
+            modalCancelBtn.addEventListener('click', closeModal);
+            modalSaveBtn.addEventListener('click', saveNewProfessor);
+            window.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) closeModal();
+            });
+        }
+
+        initApp();
+    </script>
+</body>
+</html>

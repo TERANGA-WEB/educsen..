@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guide Administrateur | Plateforme Éducative</title>
+    <meta name="description" content="Guide stratégique pour optimiser la gestion pédagogique avec notre plateforme éducative.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --primary-dark: #1d4ed8;
+            --secondary: #475569;
+            --accent: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --dark: #0f172a;
+            --dark-light: #334155;
+            --gray: #64748b;
+            --gray-light: #e2e8f0;
+            --gray-ultralight: #f8fafc;
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --radius: 8px;
+            --radius-lg: 12px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: var(--white);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        
+        /* Header minimaliste */
+        .page-header {
+            padding: 20px 0;
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+        
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--primary);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .logo-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .logo-subtext {
+            font-size: 0.875rem;
+            color: var(--gray);
+            font-weight: 400;
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--gray);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 20px;
+            border-radius: var(--radius);
+            transition: var(--transition);
+            border: 1px solid var(--border);
+            font-size: 0.95rem;
+        }
+        
+        .back-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+        
+        /* Hero sobre */
+        .hero-section {
+            padding: 80px 0 60px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.125rem;
+            color: var(--gray);
+            line-height: 1.7;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        /* Layout principal */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 40px;
+            padding: 60px 0;
+        }
+        
+        /* Navigation sobre */
+        .sidebar {
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+        }
+        
+        .nav-section {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        
+        .nav-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            background: var(--gray-ultralight);
+        }
+        
+        .nav-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .nav-content {
+            padding: 20px;
+        }
+        
+        .nav-item {
+            margin-bottom: 12px;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: var(--dark);
+            text-decoration: none;
+            border-radius: var(--radius);
+            transition: var(--transition);
+            border: 1px solid transparent;
+        }
+        
+        .nav-link:hover {
+            background: var(--primary-light);
+            border-color: var(--primary-light);
+        }
+        
+        .nav-link.active {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary);
+            font-weight: 500;
+        }
+        
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+            color: var(--gray);
+        }
+        
+        .nav-link.active .nav-icon,
+        .nav-link:hover .nav-icon {
+            color: var(--primary);
+        }
+        
+        .nav-text {
+            font-size: 0.95rem;
+        }
+        
+        /* Sections de contenu */
+        .content-section {
+            margin-bottom: 60px;
+        }
+        
+        .section-header {
+            margin-bottom: 32px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+        
+        .section-subtitle {
+            font-size: 1rem;
+            color: var(--gray);
+        }
+        
+        /* Cards sobre */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            transition: var(--transition);
+        }
+        
+        .card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 1.25rem;
+        }
+        
+        .do-section .card-icon {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+        
+        .dont-section .card-icon {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+        }
+        
+        .students-section .card-icon {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary);
+        }
+        
+        .teachers-section .card-icon {
+            background: rgba(139, 92, 246, 0.1);
+            color: #8b5cf6;
+        }
+        
+        .tips-section .card-icon {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+        
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 12px;
+        }
+        
+        .card-content {
+            color: var(--dark-light);
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+        
+        /* Note importante */
+        .important-note {
+            background: var(--gray-ultralight);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            margin: 40px 0;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .note-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .note-content {
+            color: var(--dark-light);
+            line-height: 1.7;
+        }
+        
+        /* CTA sobre */
+        .cta-section {
+            background: var(--gray-ultralight);
+            border-radius: var(--radius-lg);
+            padding: 48px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+        
+        .cta-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 16px;
+        }
+        
+        .cta-subtitle {
+            color: var(--gray);
+            margin-bottom: 32px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            border-radius: var(--radius);
+            font-weight: 500;
+            font-size: 0.95rem;
+            text-decoration: none;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid transparent;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        
+        .btn-secondary {
+            background: var(--white);
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--primary-light);
+        }
+        
+        /* Footer sobre */
+        footer {
+            background: var(--dark);
+            color: var(--white);
+            padding: 60px 0 40px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .footer-logo {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--white);
+            margin-bottom: 24px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin: 32px 0;
+            flex-wrap: wrap;
+        }
+        
+        .footer-links a {
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+        
+        .footer-links a:hover {
+            color: var(--white);
+        }
+        
+        .copyright {
+            color: #64748b;
+            font-size: 0.875rem;
+            margin-top: 40px;
+            padding-top: 24px;
+            border-top: 1px solid #334155;
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+            
+            .sidebar {
+                position: static;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .hero-section {
+                padding: 60px 0 40px;
+            }
+            
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .cta-section {
+                padding: 32px 24px;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+            
+            .footer-links {
+                flex-direction: column;
+                gap: 16px;
+            }
+        }
+        
+        /* Animations subtiles */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="page-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <div class="logo-text">Plateforme Éducative</div>
+                        <div class="logo-subtext">Guide Administrateur</div>
+                    </div>
+                </a>
+                
+                <div class="header-actions">
+                    <a href="index.html" class="back-btn">
+                        <i class="fas fa-arrow-left"></i>
+                        Retour au tableau de bord
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="hero-content fade-in">
+                <h1 class="hero-title">Guide de gestion pédagogique</h1>
+                <p class="hero-subtitle">Stratégies et bonnes pratiques pour optimiser l'utilisation de notre plateforme et améliorer les résultats académiques.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="main-layout">
+            <!-- Navigation -->
+            <aside class="sidebar">
+                <div class="nav-section fade-in">
+                    <div class="nav-header">
+                        <div class="nav-title">
+                            <i class="fas fa-bookmark"></i>
+                            Sections du guide
+                        </div>
+                    </div>
+                    <div class="nav-content">
+                        <div class="nav-item">
+                            <a href="#bonnes-pratiques" class="nav-link active">
+                                <span class="nav-icon"><i class="fas fa-check-circle"></i></span>
+                                <span class="nav-text">Bonnes pratiques</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="#a-eviter" class="nav-link">
+                                <span class="nav-icon"><i class="fas fa-exclamation-triangle"></i></span>
+                                <span class="nav-text">À éviter</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="#impact-eleves" class="nav-link">
+                                <span class="nav-icon"><i class="fas fa-user-graduate"></i></span>
+                                <span class="nav-text">Impact sur les élèves</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="#support-enseignants" class="nav-link">
+                                <span class="nav-icon"><i class="fas fa-chalkboard-teacher"></i></span>
+                                <span class="nav-text">Support enseignants</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="#strategies-avancees" class="nav-link">
+                                <span class="nav-icon"><i class="fas fa-lightbulb"></i></span>
+                                <span class="nav-text">Stratégies avancées</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="nav-section fade-in delay-1">
+                    <div class="nav-header">
+                        <div class="nav-title">
+                            <i class="fas fa-download"></i>
+                            Ressources
+                        </div>
+                    </div>
+                    <div class="nav-content">
+                        <div class="nav-item">
+                            <a href="#" class="nav-link">
+                                <span class="nav-icon"><i class="fas fa-file-pdf"></i></span>
+                                <span class="nav-text">Guide PDF complet</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="#" class="nav-link">
+                                <span class="nav-icon"><i class="fas fa-chart-bar"></i></span>
+                                <span class="nav-text">Modèles de rapports</span>
+                            </a>
+                        </div>
+                        <div class="nav-item">
+                            <a href="#" class="nav-link">
+                                <span class="nav-icon"><i class="fas fa-calendar-alt"></i></span>
+                                <span class="nav-text">Calendrier pédagogique</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Content -->
+            <main class="main-content">
+                <!-- Note importante -->
+                <div class="important-note fade-in">
+                    <div class="note-title">
+                        <i class="fas fa-info-circle"></i>
+                        Approche stratégique
+                    </div>
+                    <p class="note-content">
+                        Ce guide va au-delà des fonctionnalités techniques. Il s'agit d'un cadre stratégique pour transformer la gestion pédagogique de votre établissement en un pilotage actif et data-driven de la performance académique.
+                    </p>
+                </div>
+
+                <!-- Bonnes pratiques -->
+                <section id="bonnes-pratiques" class="content-section do-section">
+                    <div class="section-header fade-in">
+                        <h2 class="section-title">Bonnes pratiques</h2>
+                        <p class="section-subtitle">Adoptez ces stratégies pour une gestion optimale</p>
+                    </div>
+                    
+                    <div class="cards-grid">
+                        <div class="card fade-in delay-1">
+                            <div class="card-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h3 class="card-title">Suivi régulier des données</h3>
+                            <p class="card-content">Saisissez les notes hebdomadaires pour maintenir des rapports fiables et actuels. La régularité permet d'identifier rapidement les tendances.</p>
+                        </div>
+                        
+                        <div class="card fade-in delay-2">
+                            <div class="card-icon">
+                                <i class="fas fa-tachometer-alt"></i>
+                            </div>
+                            <h3 class="card-title">Monitoring des performances</h3>
+                            <p class="card-content">Analysez les performances par classe et matière pour détecter précocement les difficultés et ajuster les stratégies pédagogiques.</p>
+                        </div>
+                        
+                        <div class="card fade-in delay-3">
+                            <div class="card-icon">
+                                <i class="fas fa-bell"></i>
+                            </div>
+                            <h3 class="card-title">Utilisation des alertes</h3>
+                            <p class="card-content">Activez et surveillez les alertes de régression pour mettre en place un soutien ciblé aux élèves en difficulté dans les délais optimaux.</p>
+                        </div>
+                        
+                        <div class="card fade-in delay-4">
+                            <div class="card-icon">
+                                <i class="fas fa-award"></i>
+                            </div>
+                            <h3 class="card-title">Reconnaissance des équipes</h3>
+                            <p class="card-content">Valorisez systématiquement les professeurs dont les classes progressent pour encourager la diffusion des meilleures pratiques.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- À éviter -->
+                <section id="a-eviter" class="content-section dont-section">
+                    <div class="section-header fade-in">
+                        <h2 class="section-title">À éviter</h2>
+                        <p class="section-subtitle">Préservez l'intégrité des données et la crédibilité du système</p>
+                    </div>
+                    
+                    <div class="cards-grid">
+                        <div class="card fade-in delay-1">
+                            <div class="card-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <h3 class="card-title">Retard de saisie</h3>
+                            <p class="card-content">Évitez l'accumulation de données non saisies. La fraîcheur des informations est cruciale pour des analyses pertinentes.</p>
+                        </div>
+                        
+                        <div class="card fade-in delay-2">
+                            <div class="card-icon">
+                                <i class="fas fa-archive"></i>
+                            </div>
+                            <h3 class="card-title">Modification des archives</h3>
+                            <p class="card-content">Respectez l'intégrité des données historiques. Les archives sont verrouillées pour préserver la cohérence des analyses.</p>
+                        </div>
+                        
+                        <div class="card fade-in delay-3">
+                            <div class="card-icon">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <h3 class="card-title">Confusion des indicateurs</h3>
+                            <p class="card-content">Distinguer performance individuelle de l'élève et efficacité pédagogique. Analysez toujours le contexte global.</p>
+                        </div>
+                        
+                        <div class="card fade-in delay-4">
+                            <div class="card-icon">
+                                <i class="fas fa-balance-scale"></i>
+                            </div>
+                            <h3 class="card-title">Décisions précipitées</h3>
+                            <p class="card-content">Basez vos décisions sur des tendances établies plutôt que sur des observations ponctuelles. La pédagogie nécessite du recul.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Impact sur les élèves -->
+                <section id="impact-eleves" class="content-section students-section">
+                    <div class="section-header fade-in">
+                        <h2 class="section-title">Impact sur les élèves</h2>
+                        <p class="section-subtitle">Comment notre plateforme transforme l'expérience d'apprentissage</p>
+                    </div>
+                    
+                    <div class="cards-grid">
+                        <div class="card fade-in delay-1">
+                            <div class="card-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <h3 class="card-title">Détection précoce</h3>
+                            <p class="card-content">Identifiez les difficultés d'apprentissage avant qu'elles ne deviennent critiques, permettant une intervention ciblée.</p>
+                        </div>
+                        
+                        <div class="card fade-in delay-2">
+                            <div class="card-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h3 class="card-title">Suivi personnalisé</h3>
+                            <p class="card-content">Offrez un accompagnement adapté à chaque profil d'apprenant grâce à des données précises sur les forces et axes d'amélioration.</p>
+                        </div>
+                        
+                        <div class="card fade-in delay-3">
+                            <div class="card-icon">
+                                <i class="fas fa-bullseye"></i>
+                            </div>
+                            <h3 class="card-title">Objectifs clairs</h3>
+                            <p class="card-content">Rendez les progrès visibles et mesurables, renforçant ainsi la motivation et l'engagement des élèves.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- CTA Section -->
+                <section class="cta-section fade-in">
+                    <h2 class="cta-title">Prêt à optimiser votre gestion pédagogique ?</h2>
+                    <p class="cta-subtitle">Téléchargez le guide complet et accédez à des ressources exclusives pour optimiser l'utilisation de notre plateforme.</p>
+                    
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="exportPdf">
+                            <i class="fas fa-file-pdf"></i>
+                            Télécharger le guide PDF
+                        </button>
+                        <a href="dashboard.html" class="btn btn-secondary">
+                            <i class="fas fa-tachometer-alt"></i>
+                            Tableau de bord
+                        </a>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <a href="index.html" class="footer-logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    Plateforme Éducative
+                </a>
+                
+                <div class="footer-links">
+                    <a href="index.html">Accueil</a>
+                    <a href="dashboard.html">Tableau de bord</a>
+                    <a href="documentation.html">Documentation</a>
+                    <a href="contact.html">Contact</a>
+                </div>
+                
+                <div class="copyright">
+                    © 2023 Plateforme Éducative. Tous droits réservés.<br>
+                    <small>Guide réservé aux administrateurs et directions d'établissement</small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Navigation fluide
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        // Mettre à jour la navigation active
+                        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                        this.classList.add('active');
+                        
+                        // Scroll fluide
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 100,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+            
+            // Export PDF
+            const exportPdfBtn = document.getElementById('exportPdf');
+            exportPdfBtn.addEventListener('click', function() {
+                const originalHTML = exportPdfBtn.innerHTML;
+                
+                exportPdfBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération...';
+                exportPdfBtn.disabled = true;
+                
+                setTimeout(() => {
+                    exportPdfBtn.innerHTML = '<i class="fas fa-check"></i> Téléchargé';
+                    exportPdfBtn.disabled = false;
+                    
+                    setTimeout(() => {
+                        exportPdfBtn.innerHTML = originalHTML;
+                    }, 2000);
+                }, 1000);
+            });
+            
+            // Animation au scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('fade-in');
+                    }
+                });
+            }, observerOptions);
+            
+            // Observer les éléments
+            document.querySelectorAll('.card, .section-header, .cta-section').forEach(element => {
+                observer.observe(element);
+            });
+            
+            // Navigation active basée sur le scroll
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            window.addEventListener('scroll', () => {
+                let current = '';
+                
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    const sectionHeight = section.clientHeight;
+                    if (scrollY >= (sectionTop - 150)) {
+                        current = section.getAttribute('id');
+                    }
+                });
+                
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${current}`) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

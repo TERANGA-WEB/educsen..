@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Connexion en cours...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body{
+            font-family: Arial, sans-serif;
+            background:#f5f7fb;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+            margin:0;
+        }
+
+        .card{
+            background:white;
+            padding:40px;
+            border-radius:20px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.08);
+            text-align:center;
+            width:100%;
+            max-width:400px;
+        }
+
+        .spinner{
+            width:40px;
+            height:40px;
+            border:4px solid #eee;
+            border-top:4px solid #2563eb;
+            border-radius:50%;
+            animation:spin 1s linear infinite;
+            margin:0 auto 20px;
+        }
+
+        @keyframes spin{
+            to{ transform:rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="spinner"></div>
+    <h2>Connexion en cours...</h2>
+    <p>Veuillez patienter</p>
+</div>
+
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, isSignInWithEmailLink, signInWithEmailLink } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+// 🔹 Config Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyD7B-0O9mOdbIDQV-g6hsZx07G2ZvzKoxo",
+    authDomain: "real-educsen.firebaseapp.com",
+    projectId: "real-educsen",
+    storageBucket: "real-educsen.firebasestorage.app",
+    messagingSenderId: "80660233362",
+    appId: "1:80660233362:web:5edf5060254170056eba4b"
+};
+// 🔹 Initialiser Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+async function completeSignIn() {
+
+    // Vérifie si le lien reçu est un lien Firebase
+    if (isSignInWithEmailLink(auth, window.location.href)) {
+
+        // Récupère l'email temporaire
+        let email = localStorage.getItem("emailForSignIn");
+
+        if (!email) {
+            email = prompt("Confirmez votre email pour continuer la connexion :");
+            if (!email) {
+                alert("Email requis pour continuer la connexion !");
+                return;
+            }
+        }
+
+        try {
+            // Connexion avec lien magique
+            const result = await signInWithEmailLink(auth, email, window.location.href);
+            const user = result.user;
+
+            // 🔹 Sauvegarder les infos importantes dans localStorage
+            localStorage.setItem("userId", user.uid);
+            localStorage.setItem("userEmail", user.email);
+
+            // Supprimer l'email temporaire
+            localStorage.removeItem("emailForSignIn");
+
+            // 🔹 Redirection vers création code secret
+            window.location.href = "createcodesecret.html";
+
+        } catch (error) {
+            console.error("Erreur connexion :", error);
+            alert("Erreur connexion : " + error.message);
+        }
+    } else {
+        // Pas de lien Firebase → redirection vers login
+        window.location.href = "inscription.html";
+    }
+}
+
+// Exécute la fonction
+completeSignIn();
+</script>
+
+</body>
+</html>

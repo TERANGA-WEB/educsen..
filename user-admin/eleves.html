@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edusen · Gestion des élèves</title>
+    <!-- Material Icons & Google Fonts -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Styles identiques à la version précédente, avec mise à jour de la sidebar */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f3f4f6;
+            color: #1e293b;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ========== NOUVELLE SIDEBAR (AVEC TOGGLE INTÉGRÉ) ========== */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar-header {
+            padding: 20px 16px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .logo-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .logo-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: opacity 0.2s;
+        }
+
+        .sidebar.collapsed .logo-text {
+            opacity: 0;
+            width: 0;
+        }
+
+        /* Bouton toggle intégré */
+        .toggle-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #4b5563;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 24px;
+            margin: 0 12px;
+            border-radius: 12px;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-item .nav-icon {
+            font-size: 1.5rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-item span:last-child {
+            transition: opacity 0.2s;
+        }
+
+        .sidebar.collapsed .nav-item span:last-child {
+            opacity: 0;
+            width: 0;
+            display: none;
+        }
+
+        .nav-item.active {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 8px 16px -4px rgba(59,130,246,0.3);
+        }
+
+        .nav-item:hover:not(.active) {
+            background: #334155;
+            color: white;
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid #334155;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            white-space: nowrap;
+        }
+
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            background: #3b82f6;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .user-details {
+            overflow: hidden;
+        }
+
+        .user-name {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-transform: capitalize;
+        }
+
+        .sidebar.collapsed .user-details {
+            opacity: 0;
+            width: 0;
+        }
+
+        /* ========== MAIN WRAPPER ========== */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .main-content {
+            padding: 30px 32px;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        /* ========== VUE CLASSES ========== */
+        .classes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        .class-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .class-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+        }
+
+        .card-header {
+            padding: 24px 20px;
+            background: linear-gradient(135deg, #f8fafc, #ffffff);
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .card-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-header h2 i {
+            color: #3b82f6;
+        }
+
+        .card-actions {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-outline {
+            background: white;
+            border: 1px solid #3b82f6;
+            color: #3b82f6;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .btn-outline:hover {
+            background: #eff6ff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(59,130,246,0.2);
+        }
+
+        .btn-outline i {
+            font-size: 1.2rem;
+        }
+
+        /* ========== VUE ÉLÈVES ========== */
+        .students-view {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .view-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .view-header h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-back {
+            background: white;
+            border: 1px solid #e2e8f0;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            color: #475569;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-back:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        /* Nouveau bouton d'analyse */
+        .btn-analyze {
+            background: #10b981;
+            border: none;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 10px rgba(16,185,129,0.2);
+        }
+
+        .btn-analyze:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(16,185,129,0.3);
+        }
+
+        .students-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+
+        .students-table th {
+            text-align: left;
+            padding: 16px 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: #64748b;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .students-table td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #1e293b;
+        }
+
+        .students-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-block;
+        }
+
+        .badge-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-warning {
+            background: #fed7aa;
+            color: #92400e;
+        }
+
+        .badge-danger {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .badge-gray {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        /* Badges pour l'évolution */
+        .badge-progression {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .badge-regression {
+            background: #ffe4e6;
+            color: #9f1239;
+        }
+        .badge-stable {
+            background: #f1f5f9;
+            color: #334155;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 1.2rem;
+            margin-bottom: 24px;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 60px;
+            color: #3b82f6;
+        }
+
+        .alert {
+            background: #fee2e2;
+            border-left: 6px solid #ef4444;
+            padding: 16px 24px;
+            border-radius: 16px;
+            color: #7f1d1d;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .alert.success {
+            background: #ecfdf5;
+            border-left-color: #10b981;
+            color: #065f46;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 80px;
+            }
+            .sidebar .logo-text, .sidebar .nav-item span:last-child, .sidebar .user-details {
+                opacity: 0;
+                display: none;
+            }
+            .toggle-btn {
+                /* reste visible */
+            }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Petit indicateur de dernière analyse */
+        .last-analysis {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+    </style>
+</head>
+<body>
+    <!-- NOUVELLE SIDEBAR AVEC TOGGLE INTÉGRÉ -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-header">
+                <div class="logo-area">
+                    <div class="logo-icon">E</div>
+                    <span class="logo-text">Edu<span style="color:#3b82f6;">sen</span></span>
+                </div>
+                <button class="toggle-btn" id="toggleSidebar">
+                    <span class="material-icons" id="toggleIcon">chevron_left</span>
+                </button>
+            </div>
+        </div>
+
+
+        <nav class="nav-menu">
+            <a href="/userdashboard.html" class="nav-item active">
+                <span class="nav-icon material-icons">dashboard</span>
+                <span>Dashboard</span>
+            </a>
+             <a href="/user-admin/assistant.html" class="nav-item">
+                <span class="nav-icon material-icons">assessment</span>
+                <span>Assistant</span>
+            </a>
+            <a href="/user-admin/rapport.html" class="nav-item">
+                <span class="nav-icon material-icons">assessment</span>
+                <span>Rapport</span>
+            </a>
+            <a href="/user-admin/classes.html" class="nav-item">
+                <span class="nav-icon material-icons">school</span>
+                <span>Classes</span>
+            </a>
+            <a href="/user-admin/professeurs.html" class="nav-item">
+                <span class="nav-icon material-icons">person</span>
+                <span>Professeurs</span>
+            </a>
+            <a href="/user-admin/eleves.html" class="nav-item">
+                <span class="nav-icon material-icons">groups</span>
+                <span>Élèves</span>
+            </a>
+            <a href="/user-admin/notes.html" class="nav-item">
+                <span class="nav-icon material-icons">assignment</span>
+                <span>Notes</span>
+            </a>
+            <a href="/user-admin/parametres.html" class="nav-item">
+                <span class="nav-icon material-icons">settings</span>
+                <span>Paramètres</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info" id="userInfo">
+                <div class="user-avatar" id="userAvatar">E</div>
+                <div class="user-details">
+                    <div class="user-name" id="userName">Élève</div>
+                    <div class="user-role" id="userRole">user</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN WRAPPER (SANS L'ANCIEN TOGGLE) -->
+    <div class="main-wrapper">
+        <!-- L'ancien toggle-btn a été supprimé -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1>Gestion des élèves</h1>
+            </div>
+
+            <div id="alertContainer"></div>
+
+            <!-- VUE LISTE DES CLASSES -->
+            <div id="classesView">
+                <!-- Spinner de chargement des classes -->
+                <div id="loading" class="loading-spinner" style="display: none;">
+                    <span class="material-icons" style="font-size:2rem; animation: spin 1s linear infinite;">sync</span>
+                    <p>Chargement des classes...</p>
+                </div>
+
+                <!-- Grille des classes -->
+                <div id="classesGrid" class="classes-grid"></div>
+            </div>
+
+            <!-- VUE DÉTAIL D'UNE CLASSE (élèves) -->
+            <div id="studentsView" class="students-view hidden">
+                <div class="view-header">
+                    <h2 id="currentClassName"><i class="material-icons">class</i> <span></span></h2>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-analyze" id="analyzeBtn">
+                            <i class="material-icons">trending_up</i> Analyser les évolutions
+                        </button>
+                        <button class="btn-back" id="backBtn">
+                            <i class="material-icons">arrow_back</i> Retour
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Zone de contenu des élèves (loader, tableau, erreur) -->
+                <div id="studentsContent">
+                    <!-- Le contenu sera injecté dynamiquement -->
+                </div>
+                <!-- Indicateur de dernière analyse (caché par défaut) -->
+                <div id="lastAnalysisInfo" class="last-analysis hidden">
+                    <span class="material-icons" style="font-size: 1rem;">schedule</span>
+                    <span id="lastAnalysisDate"></span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase Import Map (identique) -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js",
+                "firebase/auth": "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        // ---------- IMPORTS FIREBASE ----------
+        import { initializeApp } from 'firebase/app';
+        import { 
+            getFirestore, 
+            collection, 
+            getDocs,
+            query,
+            where,
+            orderBy,
+            doc,
+            setDoc,
+            getDoc
+        } from 'firebase/firestore';
+        import { getAuth, onAuthStateChanged } from 'firebase/auth';
+
+        // ---------- CONFIGURATION FIREBASE ----------
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7B-0O9mOdbIDQV-g6hsZx07G2ZvzKoxo",
+            authDomain: "real-educsen.firebaseapp.com",
+            projectId: "real-educsen",
+            storageBucket: "real-educsen.firebasestorage.app",
+            messagingSenderId: "80660233362",
+            appId: "1:80660233362:web:5edf5060254170056eba4b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // ---------- ÉLÉMENTS DOM ----------
+        const alertContainer = document.getElementById('alertContainer');
+        const loading = document.getElementById('loading');
+        const classesGrid = document.getElementById('classesGrid');
+        const classesView = document.getElementById('classesView');
+        const studentsView = document.getElementById('studentsView');
+        const currentClassNameSpan = document.querySelector('#currentClassName span');
+        const studentsContent = document.getElementById('studentsContent');
+        const backBtn = document.getElementById('backBtn');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const lastAnalysisInfo = document.getElementById('lastAnalysisInfo');
+        const lastAnalysisDate = document.getElementById('lastAnalysisDate');
+        const toggleBtn = document.getElementById('toggleSidebar');
+        const sidebar = document.getElementById('sidebar');
+        const toggleIcon = document.getElementById('toggleIcon');
+        const userAvatar = document.getElementById('userAvatar');
+        const userNameSpan = document.getElementById('userName');
+        const userRoleSpan = document.getElementById('userRole');
+
+        // ---------- ÉTAT ----------
+        let currentClassId = null;
+        let currentClassName = '';
+        let currentUser = null; // sera rempli par onAuthStateChanged
+
+        // ---------- FONCTIONS D'AFFICHAGE ----------
+        function showAlert(message, type = 'error') {
+            alertContainer.innerHTML = `
+                <div class="alert ${type === 'success' ? 'success' : ''}">
+                    <span class="material-icons">${type === 'success' ? 'check_circle' : 'error'}</span>
+                    ${message}
+                </div>
+            `;
+            setTimeout(() => {
+                alertContainer.innerHTML = '';
+            }, 4000);
+        }
+
+        function clearAlert() {
+            alertContainer.innerHTML = '';
+        }
+
+        // Badge de performance (basé sur le champ "performance" de l'élève, en %)
+        function getPerformanceBadgeClass(performance) {
+            if (performance === undefined || performance === null) return 'badge-gray';
+            const value = typeof performance === 'number' ? performance : parseFloat(performance);
+            if (isNaN(value)) return 'badge-gray';
+            if (value >= 70) return 'badge-success';
+            if (value >= 40) return 'badge-warning';
+            return 'badge-danger';
+        }
+
+        function formatPerformanceBadge(performance) {
+            const badgeClass = getPerformanceBadgeClass(performance);
+            let displayText = 'N/A';
+            if (performance !== undefined && performance !== null) {
+                if (typeof performance === 'number') displayText = `${performance}%`;
+                else if (typeof performance === 'string' && !isNaN(performance) && performance.trim() !== '') displayText = `${performance}%`;
+                else displayText = performance;
+            }
+            return `<span class="badge ${badgeClass}">${displayText}</span>`;
+        }
+
+        // Badge d'évolution (progression/régression)
+        function formatEvolutionBadge(evolution) {
+            if (evolution === 'progression') {
+                return '<span class="badge badge-progression"><i class="material-icons" style="font-size: 1rem; vertical-align: middle;">trending_up</i> Progression</span>';
+            } else if (evolution === 'regression') {
+                return '<span class="badge badge-regression"><i class="material-icons" style="font-size: 1rem; vertical-align: middle;">trending_down</i> Régression</span>';
+            } else if (evolution === 'stable') {
+                return '<span class="badge badge-stable"><i class="material-icons" style="font-size: 1rem; vertical-align: middle;">trending_flat</i> Stable</span>';
+            } else {
+                return '<span class="badge badge-gray">Non disponible</span>';
+            }
+        }
+
+        // Charge les élèves d'une classe et les affiche (version simple)
+        async function loadStudentsForClass(classId, className) {
+            studentsContent.innerHTML = `
+                <div class="empty-state">
+                    <i class="material-icons">sync</i>
+                    <p>Chargement des élèves...</p>
+                </div>
+            `;
+            currentClassNameSpan.textContent = className;
+            currentClassName = className;
+
+            try {
+                const elevesRef = collection(db, "classes", classId, "eleves");
+                const snapshot = await getDocs(elevesRef);
+                const students = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                if (students.length === 0) {
+                    studentsContent.innerHTML = `
+                        <div class="empty-state">
+                            <i class="material-icons">school</i>
+                            <p>Aucun élève dans cette classe</p>
+                        </div>
+                    `;
+                } else {
+                    let tableHtml = `
+                        <table class="students-table">
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Prénom</th>
+                                    <th>Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    students.forEach(student => {
+                        const nom = student.nom || '';
+                        const prenom = student.prenom || '';
+                        const performanceBadge = formatPerformanceBadge(student.performance);
+                        tableHtml += `
+                            <tr>
+                                <td>${nom}</td>
+                                <td>${prenom}</td>
+                                <td>${performanceBadge}</td>
+                            </tr>
+                        `;
+                    });
+                    tableHtml += '</tbody></table>';
+                    studentsContent.innerHTML = tableHtml;
+                }
+
+                await checkLastAnalysis(classId);
+
+            } catch (error) {
+                console.error('Erreur chargement élèves:', error);
+                studentsContent.innerHTML = `
+                    <div class="empty-state">
+                        <i class="material-icons">error</i>
+                        <p>Erreur de chargement des élèves</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Vérifie si un rapport existe pour cette classe et met à jour l'indicateur
+        async function checkLastAnalysis(classId) {
+            try {
+                const rapportRef = doc(db, 'rapport-eleves', classId);
+                const rapportSnap = await getDoc(rapportRef);
+                if (rapportSnap.exists()) {
+                    const data = rapportSnap.data();
+                    if (data.lastUpdated) {
+                        const date = data.lastUpdated.toDate ? data.lastUpdated.toDate() : new Date(data.lastUpdated);
+                        lastAnalysisDate.textContent = `Dernière analyse : ${date.toLocaleDateString()} à ${date.toLocaleTimeString()}`;
+                        lastAnalysisInfo.classList.remove('hidden');
+                    } else {
+                        lastAnalysisInfo.classList.add('hidden');
+                    }
+                } else {
+                    lastAnalysisInfo.classList.add('hidden');
+                }
+            } catch (e) {
+                console.warn("Impossible de vérifier le rapport", e);
+                lastAnalysisInfo.classList.add('hidden');
+            }
+        }
+
+        // ---------- FONCTION PRINCIPALE CORRIGÉE ----------
+        async function analyzeClassEvolution(classId, className) {
+            studentsContent.innerHTML = `
+                <div class="empty-state">
+                    <i class="material-icons" style="animation: spin 1s linear infinite;">sync</i>
+                    <p>Analyse des évolutions en cours...</p>
+                </div>
+            `;
+            lastAnalysisInfo.classList.add('hidden');
+
+            try {
+                // 1. Récupérer tous les élèves de la classe
+                const elevesRef = collection(db, "classes", classId, "eleves");
+                const elevesSnapshot = await getDocs(elevesRef);
+                const eleves = elevesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                if (eleves.length === 0) {
+                    studentsContent.innerHTML = `
+                        <div class="empty-state">
+                            <i class="material-icons">school</i>
+                            <p>Aucun élève dans cette classe</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // 2. Récupérer toutes les évaluations de cette classe, triées par date (IMPORTANT pour l'évolution)
+                const evaluationsQuery = query(
+                    collection(db, "evaluations"),
+                    where("classeId", "==", classId)
+                );
+                const evaluationsSnapshot = await getDocs(evaluationsQuery);
+
+                // Extraire les données et trier côté client par createdAt
+                const evaluations = evaluationsSnapshot.docs
+                    .map(doc => ({ id: doc.id, ...doc.data() }))
+                    .sort((a, b) => {
+                        const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date();
+                        const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date();
+                        return dateA - dateB; // tri chronologique
+                    });
+
+                // 3. Pour chaque élève, collecter ses notes avec leur date
+                const eleveNotesMap = new Map(); // eleveId -> array of { note, date }
+                for (const evalDoc of evaluations) {
+                    const evalId = evalDoc.id;
+                    const evalDate = evalDoc.createdAt?.toDate ? evalDoc.createdAt.toDate() : new Date();
+                    const notesRef = collection(db, "evaluations", evalId, "notes");
+                    const notesSnapshot = await getDocs(notesRef);
+                    notesSnapshot.forEach(noteDoc => {
+                        const data = noteDoc.data();
+                        const eleveId = data.eleveId;
+                        const noteValue = data.note;
+                        if (eleveId && typeof noteValue === 'number') {
+                            if (!eleveNotesMap.has(eleveId)) {
+                                eleveNotesMap.set(eleveId, []);
+                            }
+                            eleveNotesMap.get(eleveId).push({
+                                note: noteValue,
+                                date: evalDate
+                            });
+                        }
+                    });
+                }
+
+                // 4. Calculer pour chaque élève : moyenne, première note, dernière note, évolution
+                const report = [];
+                for (const eleve of eleves) {
+                    const eleveId = eleve.id;
+                    const notes = eleveNotesMap.get(eleveId) || [];
+
+                    // Moyenne
+                    let moyenne = null;
+                    if (notes.length > 0) {
+                        const sum = notes.reduce((acc, n) => acc + n.note, 0);
+                        moyenne = sum / notes.length;
+                    }
+
+                    // Évolution : comparer première et dernière note (chronologique)
+                    let evolution = 'non_disponible';
+                    if (notes.length >= 2) {
+                        const firstNote = notes[0].note;
+                        const lastNote = notes[notes.length - 1].note;
+                        if (lastNote > firstNote) evolution = 'progression';
+                        else if (lastNote < firstNote) evolution = 'regression';
+                        else evolution = 'stable';
+                    } else if (notes.length === 1) {
+                        evolution = 'une_seule_note';
+                    }
+
+                    report.push({
+                        id: eleveId,
+                        nom: eleve.nom || '',
+                        prenom: eleve.prenom || '',
+                        moyenne: moyenne,
+                        evolution: evolution,
+                        nombreNotes: notes.length
+                    });
+                }
+
+                // 5. Vérifier si un rapport existe déjà et comparer le nombre total de notes
+                const rapportRef = doc(db, 'rapport-eleves', classId);
+                const rapportSnap = await getDoc(rapportRef);
+
+                let ancienTotalNotes = 0;
+                if (rapportSnap.exists()) {
+                    ancienTotalNotes = rapportSnap.data().totalNotes || 0;
+                }
+
+                // Calculer le total des notes actuelles
+                let totalNotesActuelles = 0;
+                eleveNotesMap.forEach(notes => {
+                    totalNotesActuelles += notes.length;
+                });
+
+                // Si aucune nouvelle note → on lit juste l'ancien rapport et on s'arrête
+                if (rapportSnap.exists() && totalNotesActuelles === ancienTotalNotes) {
+                    console.log("Aucune nouvelle note. Lecture du rapport existant.");
+                    displayEvolutionReport(rapportSnap.data().eleves);
+                    const date = rapportSnap.data().lastUpdated?.toDate();
+                    if (date) {
+                        lastAnalysisDate.textContent =
+                            `Dernière analyse : ${date.toLocaleDateString()} à ${date.toLocaleTimeString()}`;
+                        lastAnalysisInfo.classList.remove('hidden');
+                    }
+                    showAlert('Aucune nouvelle note. Rapport existant affiché.', 'success');
+                    return; // ⛔ on sort
+                }
+
+                if (!currentUser) {
+                    showAlert("Utilisateur non connecté. Analyse impossible.", "error");
+                    return; // stoppe la fonction si pas connecté
+                }
+
+                // 🔥 Nouvelle(s) note(s) détectée(s) → on met à jour le rapport
+                await setDoc(rapportRef, {
+                    lastUpdated: new Date(),
+                    className: className,
+                    totalNotes: totalNotesActuelles,
+                    eleves: report,
+                    createdBy: currentUser.name,
+                    userId: currentUser.id
+                });
+
+                // 6. Afficher le rapport
+                displayEvolutionReport(report);
+
+                // 7. Mettre à jour l'indicateur de dernière analyse
+                lastAnalysisDate.textContent = `Dernière analyse : ${new Date().toLocaleDateString()} à ${new Date().toLocaleTimeString()}`;
+                lastAnalysisInfo.classList.remove('hidden');
+
+                showAlert('Analyse terminée et sauvegardée', 'success');
+
+            } catch (error) {
+                console.error('Erreur lors de l\'analyse:', error);
+                studentsContent.innerHTML = `
+                    <div class="empty-state">
+                        <i class="material-icons">error</i>
+                        <p>Erreur lors de l'analyse. Veuillez réessayer.</p>
+                    </div>
+                `;
+                showAlert('Erreur d\'analyse', 'error');
+            }
+        }
+
+        // Affiche le rapport d'évolution sous forme de tableau enrichi (avec code couleur sur la moyenne)
+        function displayEvolutionReport(report) {
+            if (report.length === 0) {
+                studentsContent.innerHTML = `
+                    <div class="empty-state">
+                        <i class="material-icons">school</i>
+                        <p>Aucune donnée d'évolution</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let tableHtml = `
+                <table class="students-table">
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Prénom</th>
+                            <th>Moyenne (/20)</th>
+                            <th>Nombre de notes</th>
+                            <th>Évolution</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            report.forEach(eleve => {
+                // Badge de couleur pour la moyenne selon la règle : <10 rouge, 10-12 orange, ≥12 vert
+                let moyenneBadgeClass = 'badge-gray';
+                if (eleve.moyenne !== null) {
+                    if (eleve.moyenne < 10) {
+                        moyenneBadgeClass = 'badge-danger';      // rouge
+                    } else if (eleve.moyenne >= 12) {
+                        moyenneBadgeClass = 'badge-success';      // vert
+                    } else {
+                        moyenneBadgeClass = 'badge-warning';      // orange (entre 10 et 11.99)
+                    }
+                }
+                const moyenneAff = eleve.moyenne !== null ? eleve.moyenne.toFixed(2) : '—';
+                const evolutionBadge = formatEvolutionBadge(eleve.evolution);
+
+                tableHtml += `
+                    <tr>
+                        <td>${eleve.nom}</td>
+                        <td>${eleve.prenom}</td>
+                        <td><span class="badge ${moyenneBadgeClass}">${moyenneAff}</span></td>
+                        <td>${eleve.nombreNotes}</td>
+                        <td>${evolutionBadge}</td>
+                    </tr>
+                `;
+            });
+
+            tableHtml += '</tbody></table>';
+            studentsContent.innerHTML = tableHtml;
+        }
+
+        // Affiche la vue des élèves pour une classe donnée
+        function showStudentsView(classId, className) {
+            currentClassId = classId;
+            classesView.classList.add('hidden');
+            studentsView.classList.remove('hidden');
+            loadStudentsForClass(classId, className);
+        }
+
+        // Retour à la liste des classes
+        function showClassesView() {
+            classesView.classList.remove('hidden');
+            studentsView.classList.add('hidden');
+            currentClassId = null;
+        }
+
+        // Charge toutes les classes et crée les cartes
+        async function loadClasses() {
+            clearAlert();
+            loading.style.display = 'block';
+            classesGrid.innerHTML = '';
+
+            try {
+                const classesRef = collection(db, 'classes');
+                const snapshot = await getDocs(classesRef);
+                const classes = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                loading.style.display = 'none';
+
+                if (classes.length === 0) {
+                    classesGrid.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1/-1;">
+                            <i class="material-icons">class</i>
+                            <p>Aucune classe enregistrée</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                classes.forEach(cls => {
+                    const className = cls.nomClasse || 'Classe sans nom';
+                    const classId = cls.id;
+
+                    const card = document.createElement('div');
+                    card.className = 'class-card';
+                    card.innerHTML = `
+                        <div class="card-header">
+                            <h2><i class="material-icons">class</i> ${className}</h2>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn-outline" data-class-id="${classId}" data-class-name="${className}">
+                                <i class="material-icons">visibility</i> Voir les élèves
+                            </button>
+                        </div>
+                    `;
+                    classesGrid.appendChild(card);
+                });
+
+                // Ajouter les écouteurs sur les boutons
+                document.querySelectorAll('.btn-outline').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const classId = btn.dataset.classId;
+                        const className = btn.dataset.className;
+                        showStudentsView(classId, className);
+                    });
+                });
+
+            } catch (error) {
+                console.error('Erreur chargement classes:', error);
+                loading.style.display = 'none';
+                showAlert('Erreur lors du chargement des classes.', 'error');
+            }
+        }
+
+        // ---------- AUTH ----------
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = {
+                    id: user.uid,
+                    name: user.displayName || user.email || 'Utilisateur'
+                };
+                // mettre à jour la sidebar
+                userNameSpan.textContent = currentUser.name;
+                userRoleSpan.textContent = 'admin'; // ou ton vrai rôle
+                userAvatar.textContent = currentUser.name[0].toUpperCase();
+            } else {
+                showAlert("Vous devez être connecté pour analyser la classe", "error");
+            }
+        });
+
+        // ---------- SIDEBAR TOGGLE ----------
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            toggleIcon.textContent = sidebar.classList.contains('collapsed') ? 'chevron_right' : 'chevron_left';
+        });
+
+        function handleResize() {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.add('collapsed');
+                toggleIcon.textContent = 'chevron_right';
+            } else {
+                sidebar.classList.remove('collapsed');
+                toggleIcon.textContent = 'chevron_left';
+            }
+        }
+        window.addEventListener('resize', handleResize);
+        handleResize();
+
+        // ---------- BOUTON RETOUR ----------
+        backBtn.addEventListener('click', showClassesView);
+
+        // ---------- BOUTON ANALYSER ----------
+        analyzeBtn.addEventListener('click', () => {
+            if (currentClassId) {
+                analyzeClassEvolution(currentClassId, currentClassName);
+            } else {
+                showAlert('Aucune classe sélectionnée', 'error');
+            }
+        });
+
+        // ---------- INITIALISATION ----------
+        loadClasses();
+    </script>
+</body>
+</html>

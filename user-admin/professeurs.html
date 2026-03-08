@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professeurs · Educsen</title>
+    <!-- Material Icons & Google Fonts -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Styles généraux conservés */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f3f4f6;
+            color: #1e293b;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ========== NOUVELLE SIDEBAR (AVEC TOGGLE INTÉGRÉ) ========== */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar-header {
+            padding: 20px 16px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .logo-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .logo-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: opacity 0.2s;
+        }
+
+        .sidebar.collapsed .logo-text {
+            opacity: 0;
+            width: 0;
+        }
+
+        .logo-text span {
+            color: #3b82f6;
+        }
+
+        /* Bouton toggle intégré */
+        .toggle-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #4b5563;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 24px;
+            margin: 0 12px;
+            border-radius: 12px;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-item .nav-icon {
+            font-size: 1.5rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-item span:last-child {
+            transition: opacity 0.2s;
+        }
+
+        .sidebar.collapsed .nav-item span:last-child {
+            opacity: 0;
+            width: 0;
+            display: none;
+        }
+
+        .nav-item.active {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 8px 16px -4px rgba(59,130,246,0.3);
+        }
+
+        .nav-item:hover:not(.active) {
+            background: #334155;
+            color: white;
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid #334155;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            white-space: nowrap;
+            margin-bottom: 12px;
+        }
+
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            background: #3b82f6;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .user-details {
+            overflow: hidden;
+        }
+
+        .user-name {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-transform: capitalize;
+        }
+
+        .sidebar.collapsed .user-details {
+            opacity: 0;
+            width: 0;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            white-space: nowrap;
+            text-decoration: none;
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        /* ========== MAIN WRAPPER ========== */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            transition: margin-left 0.3s ease;
+            position: relative;
+        }
+
+        .main-content {
+            padding: 30px 32px;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        /* ========== GRILLE DES PROFESSEURS - CARTES COMPACTES ========== */
+        .professeurs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .professeur-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 20px -8px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            border-left-width: 4px;
+            border-left-style: solid;
+            border-left-color: #cbd5e1;
+        }
+
+        .professeur-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px -10px rgba(0,0,0,0.15);
+        }
+
+        .professeur-card.bon {
+            border-left-color: #10b981;
+        }
+        .professeur-card.moyen {
+            border-left-color: #f59e0b;
+        }
+        .professeur-card.faible {
+            border-left-color: #ef4444;
+        }
+        .professeur-card.aucune {
+            border-left-color: #94a3b8;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .card-header h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #0f172a;
+            line-height: 1.3;
+        }
+
+        .status-badge {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .status-badge.bon { background-color: #10b981; }
+        .status-badge.moyen { background-color: #f59e0b; }
+        .status-badge.faible { background-color: #ef4444; }
+        .status-badge.aucune { background-color: #94a3b8; }
+
+        .matiere {
+            color: #3b82f6;
+            font-weight: 500;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .matiere .material-icons {
+            font-size: 1rem;
+        }
+
+        .classes {
+            background: #f1f5f9;
+            border-radius: 20px;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            color: #334155;
+            margin-bottom: 12px;
+            display: inline-block;
+            max-width: 100%;
+            word-break: break-word;
+        }
+
+        .classes .material-icons {
+            font-size: 0.9rem;
+            vertical-align: middle;
+        }
+
+        .moyenne-container {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .moyenne-value {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #0f172a;
+        }
+        .moyenne-unit {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-left: 2px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 8px 0 4px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.4s ease;
+            border-radius: 10px;
+        }
+        .fill-bon { background-color: #10b981; }
+        .fill-moyen { background-color: #f59e0b; }
+        .fill-faible { background-color: #ef4444; }
+        .fill-aucune { background-color: #94a3b8; }
+
+        .empty-state, .error-state, .loading-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 20px -8px rgba(0,0,0,0.05);
+        }
+        .loading-state .material-icons {
+            font-size: 2.5rem;
+            animation: spin 1s linear infinite;
+            color: #3b82f6;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .alert {
+            background: #fee2e2;
+            border-left: 6px solid #ef4444;
+            padding: 16px 24px;
+            border-radius: 16px;
+            color: #7f1d1d;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .alert.success {
+            background: #ecfdf5;
+            border-left-color: #10b981;
+            color: #065f46;
+        }
+
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 30px;
+            padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: #475569;
+        }
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        .legend-dot.bon { background: #10b981; }
+        .legend-dot.moyen { background: #f59e0b; }
+        .legend-dot.faible { background: #ef4444; }
+        .legend-dot.aucune { background: #94a3b8; }
+
+        .hidden { display: none; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 80px;
+            }
+            .sidebar .logo-text, .sidebar .nav-item span:last-child, .sidebar .user-details {
+                opacity: 0;
+                display: none;
+            }
+            .toggle-btn {
+                /* reste visible */
+            }
+            .main-content {
+                padding: 20px;
+            }
+            .professeurs-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 12px;
+            }
+            .professeur-card {
+                padding: 12px;
+            }
+            .card-header h3 {
+                font-size: 1rem;
+            }
+            .moyenne-value {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- NOUVELLE SIDEBAR AVEC TOGGLE INTÉGRÉ -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-header">
+                <div class="logo-area">
+                    <div class="logo-icon">E</div>
+                    <span class="logo-text">Edu<span style="color:#3b82f6;">sen</span></span>
+                </div>
+                <button class="toggle-btn" id="toggleSidebar">
+                    <span class="material-icons" id="toggleIcon">chevron_left</span>
+                </button>
+            </div>
+        </div>
+
+        <nav class="nav-menu">
+            <a href="/userdashboard.html" class="nav-item active">
+                <span class="nav-icon material-icons">dashboard</span>
+                <span>Dashboard</span>
+            </a>
+             <a href="/user-admin/assistant.html" class="nav-item">
+                <span class="nav-icon material-icons">assessment</span>
+                <span>Assistant</span>
+            </a>
+            <a href="/user-admin/rapport.html" class="nav-item">
+                <span class="nav-icon material-icons">assessment</span>
+                <span>Rapport</span>
+            </a>
+            <a href="/user-admin/classes.html" class="nav-item">
+                <span class="nav-icon material-icons">school</span>
+                <span>Classes</span>
+            </a>
+            <a href="/user-admin/professeurs.html" class="nav-item">
+                <span class="nav-icon material-icons">person</span>
+                <span>Professeurs</span>
+            </a>
+            <a href="/user-admin/eleves.html" class="nav-item">
+                <span class="nav-icon material-icons">groups</span>
+                <span>Élèves</span>
+            </a>
+            <a href="/user-admin/notes.html" class="nav-item">
+                <span class="nav-icon material-icons">assignment</span>
+                <span>Notes</span>
+            </a>
+            <a href="/user-admin/parametres.html" class="nav-item">
+                <span class="nav-icon material-icons">settings</span>
+                <span>Paramètres</span>
+            </a>
+        </nav>
+
+
+        <div class="sidebar-footer">
+            <div class="user-info" id="userInfo">
+                <div class="user-avatar" id="userAvatar">E</div>
+                <div class="user-details">
+                    <div class="user-name" id="userName">Utilisateur</div>
+                    <div class="user-role" id="userRole">admin</div>
+                </div>
+            </div>
+            <a href="connexion.html" class="logout-btn" id="logoutBtn">
+                <span class="material-icons">logout</span>
+                <span>Déconnexion</span>
+            </a>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+        <!-- L'ancien toggle-btn a été supprimé -->
+
+        <main class="main-content">
+            <div class="page-header">
+                <h1>Professeurs</h1>
+            </div>
+
+            <div id="alertContainer"></div>
+
+            <!-- Container des cartes -->
+            <div id="professeursGrid" class="professeurs-grid">
+                <div class="loading-state">
+                    <span class="material-icons">sync</span>
+                    <p>Chargement des professeurs...</p>
+                </div>
+            </div>
+
+            <!-- Légende compacte -->
+            <div class="legend">
+                <div class="legend-item"><span class="legend-dot bon"></span> Bon (≥12)</div>
+                <div class="legend-item"><span class="legend-dot moyen"></span> Moyen (10–11.9)</div>
+                <div class="legend-item"><span class="legend-dot faible"></span> Faible (<10)</div>
+                <div class="legend-item"><span class="legend-dot aucune"></span> Aucune note</div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase Import Map -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js",
+                "firebase/auth": "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        // ---------- IMPORTS FIREBASE ----------
+        import { initializeApp } from 'firebase/app';
+        import { getAuth, onAuthStateChanged } from 'firebase/auth';
+        import { 
+            getFirestore, 
+            collection, 
+            query, 
+            where, 
+            getDocs, 
+            doc, 
+            getDoc, 
+            setDoc,
+            orderBy,
+            limit
+        } from 'firebase/firestore';
+
+        // ---------- CONFIGURATION FIREBASE ----------
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7B-0O9mOdbIDQV-g6hsZx07G2ZvzKoxo",
+            authDomain: "real-educsen.firebaseapp.com",
+            projectId: "real-educsen",
+            storageBucket: "real-educsen.firebasestorage.app",
+            messagingSenderId: "80660233362",
+            appId: "1:80660233362:web:5edf5060254170056eba4b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // ---------- ÉLÉMENTS DOM ----------
+        const alertContainer = document.getElementById('alertContainer');
+        const professeursGrid = document.getElementById('professeursGrid');
+        const toggleBtn = document.getElementById('toggleSidebar');
+        const sidebar = document.getElementById('sidebar');
+        const toggleIcon = document.getElementById('toggleIcon');
+        const userAvatar = document.getElementById('userAvatar');
+        const userNameSpan = document.getElementById('userName');
+        const userRoleSpan = document.getElementById('userRole');
+
+        // ---------- UTILITAIRES ----------
+        function showAlert(message, type = 'error') {
+            alertContainer.innerHTML = `
+                <div class="alert ${type === 'success' ? 'success' : ''}">
+                    <span class="material-icons">${type === 'success' ? 'check_circle' : 'error'}</span>
+                    ${message}
+                </div>
+            `;
+            setTimeout(() => { alertContainer.innerHTML = ''; }, 4000);
+        }
+
+        function computeAverage(notes) {
+            if (!notes.length) return null;
+            const sum = notes.reduce((acc, n) => acc + n, 0);
+            return sum / notes.length;
+        }
+
+        function getStatusFromAverage(avg) {
+            if (avg === null) return 'aucune';
+            if (avg >= 12) return 'bon';
+            if (avg >= 10) return 'moyen';
+            return 'faible';
+        }
+
+        async function fetchNotesForEvaluation(evaluationId) {
+            const notesRef = collection(db, 'evaluations', evaluationId, 'notes');
+            const snapshot = await getDocs(notesRef);
+            const notes = [];
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if (typeof data.note === 'number' && data.note >= 0 && data.note <= 20) {
+                    notes.push(data.note);
+                }
+            });
+            return notes;
+        }
+
+        // ---------- FONCTION DE CALCUL COMPLET (retourne le tableau des professeurs) ----------
+        async function computeFullProfessorStats(userId) {
+            // 1. Récupérer toutes les classes de l'utilisateur
+            const classesQuery = query(collection(db, 'classes'), where('createdBy', '==', userId));
+            const classesSnapshot = await getDocs(classesQuery);
+
+            const professeursMap = new Map(); // { professeurId: { id, nomComplet, matiere, classes: Set, classIds: Set } }
+
+            classesSnapshot.forEach(classDoc => {
+                const classData = classDoc.data();
+                const className = classData.nomClasse || 'Classe sans nom';
+                const classId = classDoc.id;
+
+                if (Array.isArray(classData.matieres)) {
+                    classData.matieres.forEach(matiere => {
+                        const profId = matiere.professeurId;
+                        const profNom = matiere.professeurNom || 'Nom inconnu';
+                        const matiereNom = matiere.nom || 'Matière inconnue';
+
+                        if (profId) {
+                            if (!professeursMap.has(profId)) {
+                                professeursMap.set(profId, {
+                                    id: profId,
+                                    nomComplet: profNom,
+                                    matiere: matiereNom,
+                                    classes: new Set(),
+                                    classIds: new Set()
+                                });
+                            }
+                            const prof = professeursMap.get(profId);
+                            prof.classes.add(className);
+                            prof.classIds.add(classId);
+                        }
+                    });
+                }
+            });
+
+            if (professeursMap.size === 0) {
+                return []; // aucun professeur trouvé
+            }
+
+            // 2. Pour chaque professeur, récupérer les évaluations et notes
+            const professeursArray = [];
+
+            for (const [profId, prof] of professeursMap.entries()) {
+                const evalsQuery = query(collection(db, 'evaluations'), where('professeurId', '==', profId));
+                const evalsSnapshot = await getDocs(evalsQuery);
+
+                let allNotes = [];
+                for (const evalDoc of evalsSnapshot.docs) {
+                    const evalData = evalDoc.data();
+                    // Vérifier que la classe de l'évaluation fait partie des classes du professeur
+                    if (prof.classIds.has(evalData.classeId)) {
+                        const notes = await fetchNotesForEvaluation(evalDoc.id);
+                        allNotes = allNotes.concat(notes);
+                    }
+                }
+
+                const moyenne = computeAverage(allNotes);
+                const status = getStatusFromAverage(moyenne);
+
+                professeursArray.push({
+                    id: profId,
+                    nomComplet: prof.nomComplet,
+                    matiere: prof.matiere,
+                    classes: Array.from(prof.classes),
+                    moyenne: moyenne,
+                    status: status
+                });
+            }
+
+            return professeursArray;
+        }
+
+        // ---------- RENDU ----------
+        function renderProfesseurs(professeurs) {
+            if (professeurs.length === 0) {
+                professeursGrid.innerHTML = '<div class="empty-state"><span class="material-icons">person_off</span><p>Aucun professeur trouvé</p></div>';
+                return;
+            }
+
+            professeursGrid.innerHTML = '';
+
+            professeurs.forEach(prof => {
+                const card = document.createElement('div');
+                card.className = `professeur-card ${prof.status}`;
+
+                const fullName = prof.nomComplet || 'Nom inconnu';
+                const classesText = prof.classes.length ? prof.classes.join(', ') : 'Aucune classe assignée';
+
+                let moyenneAffichage = '—';
+                let pourcentage = 0;
+                if (prof.moyenne !== null) {
+                    moyenneAffichage = prof.moyenne.toFixed(2);
+                    pourcentage = (prof.moyenne / 20) * 100;
+                }
+
+                let fillClass = 'fill-aucune';
+                if (prof.status === 'bon') fillClass = 'fill-bon';
+                else if (prof.status === 'moyen') fillClass = 'fill-moyen';
+                else if (prof.status === 'faible') fillClass = 'fill-faible';
+
+                card.innerHTML = `
+                    <div class="card-header">
+                        <h3>${fullName}</h3>
+                        <span class="status-badge ${prof.status}" title="Statut: ${prof.status}"></span>
+                    </div>
+                    <div class="matiere"><span class="material-icons">book</span> ${prof.matiere}</div>
+                    <div class="classes"><span class="material-icons">class</span> ${classesText}</div>
+                    <div class="moyenne-container">
+                        <span class="moyenne-value">${moyenneAffichage}</span>
+                        <span class="moyenne-unit">/20</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill ${fillClass}" style="width: ${pourcentage}%;"></div>
+                    </div>
+                `;
+                professeursGrid.appendChild(card);
+            });
+        }
+
+        // ---------- FONCTION POUR OBTENIR LA DERNIÈRE DATE DE MISE À JOUR ----------
+        async function getLastEvaluationCreatedAt(userId) {
+            try {
+                const q = query(
+                    collection(db, 'evaluations'),
+                    where('createdBy', '==', userId),
+                    orderBy('createdAt', 'desc'),
+                    limit(1)
+                );
+                const snap = await getDocs(q);
+                if (!snap.empty) {
+                    const data = snap.docs[0].data();
+                    if (data.createdAt && typeof data.createdAt.toDate === 'function') {
+                        return data.createdAt.toDate();
+                    }
+                }
+            } catch (e) {
+                console.warn('Impossible de récupérer la dernière date de création', e);
+            }
+            return new Date(0);
+        }
+
+        // ---------- LOGIQUE DE CACHE AVEC RAPPORT_PROFESSEURS ----------
+        async function loadProfesseursWithCache() {
+            const user = auth.currentUser;
+            if (!user) return;
+
+            try {
+                professeursGrid.innerHTML = '<div class="loading-state"><span class="material-icons">sync</span><p>Chargement des professeurs...</p></div>';
+
+                const evalQuery = query(
+                    collection(db, 'evaluations'),
+                    where('createdBy', '==', user.uid)
+                );
+                const evalSnapshot = await getDocs(evalQuery);
+                const currentEvalCount = evalSnapshot.size;
+                const lastCreatedAt = await getLastEvaluationCreatedAt(user.uid);
+
+                const rapportRef = doc(db, 'rapport_professeurs', user.uid);
+                const rapportSnap = await getDoc(rapportRef);
+
+                if (rapportSnap.exists()) {
+                    const data = rapportSnap.data();
+                    const lastReportDate = data.lastEvaluationCreatedAt ? new Date(data.lastEvaluationCreatedAt) : new Date(0);
+                    if (data.lastEvaluationCount === currentEvalCount && lastReportDate.getTime() === lastCreatedAt.getTime()) {
+                        console.log('✅ Utilisation du cache (rapport_professeurs)');
+                        renderProfesseurs(data.data);
+                        return;
+                    } else {
+                        console.log('🔄 Nouvelles évaluations détectées, recalcul...');
+                    }
+                } else {
+                    console.log('🔄 Aucun rapport existant, calcul initial...');
+                }
+
+                const professeursArray = await computeFullProfessorStats(user.uid);
+
+                await setDoc(rapportRef, {
+                    userId: user.uid, 
+                    lastEvaluationCount: currentEvalCount,
+                    lastEvaluationCreatedAt: lastCreatedAt,
+                    lastUpdated: new Date(),
+                    data: professeursArray
+                });
+
+                console.log('💾 Rapport professeurs sauvegardé');
+                renderProfesseurs(professeursArray);
+
+            } catch (error) {
+                console.error('Erreur chargement professeurs:', error);
+                professeursGrid.innerHTML = '<div class="error-state"><span class="material-icons">error</span><p>Erreur lors du chargement. Veuillez réessayer.</p></div>';
+                showAlert('Impossible de charger les professeurs.', 'error');
+            }
+        }
+
+        // ---------- GESTION AUTH ----------
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = 'connexion.html';
+                return;
+            }
+            userNameSpan.textContent = user.email || 'Utilisateur';
+            userRoleSpan.textContent = user.role || 'admin';
+            userAvatar.textContent = (user.email?.[0] || 'U').toUpperCase();
+
+            loadProfesseursWithCache();
+        });
+
+        // ---------- SIDEBAR TOGGLE (adapté pour le nouveau bouton) ----------
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+                toggleIcon.textContent = sidebar.classList.contains('collapsed') ? 'chevron_right' : 'chevron_left';
+            });
+        }
+
+        function handleResize() {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.add('collapsed');
+                toggleIcon.textContent = 'chevron_right';
+            } else {
+                sidebar.classList.remove('collapsed');
+                toggleIcon.textContent = 'chevron_left';
+            }
+        }
+        window.addEventListener('resize', handleResize);
+        handleResize();
+    </script>
+</body>
+</html>

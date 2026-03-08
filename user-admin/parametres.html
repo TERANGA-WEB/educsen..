@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduMetrics | Paramètres</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        /* ========== STYLE CONSERVÉ ========== */
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: rgba(59, 130, 246, 0.2);
+            --secondary: #10b981;
+            --secondary-dark: #059669;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+            --gray-50: #0f172a;
+            --gray-100: #1e293b;
+            --gray-200: #334155;
+            --gray-300: #475569;
+            --gray-400: #64748b;
+            --gray-500: #94a3b8;
+            --gray-600: #cbd5e1;
+            --gray-700: #e2e8f0;
+            --gray-800: #f1f5f9;
+            --gray-900: #f8fafc;
+            --sidebar-width: 280px;
+            --header-height: 70px;
+            --border-radius: 10px;
+            --border-radius-sm: 6px;
+            --box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            --box-shadow-lg: 0 4px 6px rgba(0, 0, 0, 0.4);
+            --transition: all 0.2s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+            background-color: var(--gray-50);
+            color: var(--gray-700);
+            line-height: 1.5;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ========== SIDEBAR ========== */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar-header {
+            padding: 20px 16px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .logo-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .logo-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: opacity 0.2s;
+            color: white;
+        }
+
+        .sidebar.collapsed .logo-text {
+            opacity: 0;
+            width: 0;
+        }
+
+        .logo-text span {
+            color: #3b82f6;
+        }
+
+        .toggle-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #4b5563;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 24px;
+            margin: 0 12px;
+            border-radius: 12px;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-item .nav-icon {
+            font-size: 1.5rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-item span:last-child {
+            transition: opacity 0.2s;
+        }
+
+        .sidebar.collapsed .nav-item span:last-child {
+            opacity: 0;
+            width: 0;
+            display: none;
+        }
+
+        .nav-item.active {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 8px 16px -4px rgba(59,130,246,0.3);
+        }
+
+        .nav-item:hover:not(.active) {
+            background: #334155;
+            color: white;
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid #334155;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            white-space: nowrap;
+            margin-bottom: 12px;
+        }
+
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            background: #3b82f6;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .user-details {
+            overflow: hidden;
+        }
+
+        .user-name {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-transform: capitalize;
+        }
+
+        .sidebar.collapsed .user-details {
+            opacity: 0;
+            width: 0;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        .sidebar.collapsed ~ .main-content {
+            margin-left: 80px;
+        }
+
+        .main-header {
+            height: var(--header-height);
+            background: var(--gray-100);
+            border-bottom: 1px solid var(--gray-200);
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .page-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .page-title h1 {
+            font-size: 1.5rem;
+            color: var(--gray-700);
+            font-weight: 600;
+        }
+
+        .page-title i {
+            color: var(--primary);
+            font-size: 1.25rem;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .admin-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--border-radius-sm);
+            background: var(--gray-200);
+        }
+
+        .admin-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .admin-name {
+            font-weight: 600;
+            color: var(--gray-700);
+            font-size: 0.9rem;
+        }
+
+        .admin-role {
+            font-size: 0.75rem;
+            color: var(--gray-400);
+        }
+
+        .content-wrapper {
+            padding: 1.5rem;
+        }
+
+        .page-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .page-header h2 {
+            font-size: 1.25rem;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+
+        .tabs-container {
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 0.75rem 1.25rem;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--gray-500);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .tab:hover {
+            color: var(--gray-700);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+            background: transparent;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .card {
+            background: var(--gray-100);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--box-shadow);
+            border: 1px solid var(--gray-200);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .card-header i {
+            font-size: 1.25rem;
+            color: var(--primary);
+        }
+
+        .card-header h3 {
+            font-size: 1.1rem;
+            color: var(--gray-700);
+            font-weight: 600;
+        }
+
+        .card-description {
+            color: var(--gray-500);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .setting-group {
+            background: var(--gray-200);
+            border-radius: var(--border-radius-sm);
+            padding: 1.25rem;
+            border: 1px solid var(--gray-300);
+        }
+
+        .setting-item {
+            margin-bottom: 1.25rem;
+        }
+
+        .setting-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .setting-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--gray-600);
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .setting-label i {
+            color: var(--gray-500);
+            font-size: 0.875rem;
+        }
+
+        .setting-input {
+            width: 100%;
+            padding: 0.625rem 0.75rem;
+            border: 1px solid var(--gray-300);
+            border-radius: var(--border-radius-sm);
+            font-size: 0.95rem;
+            transition: var(--transition);
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .setting-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .setting-hint {
+            font-size: 0.85rem;
+            color: var(--gray-400);
+            margin-top: 0.375rem;
+            line-height: 1.4;
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-with-icon .prefix {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-500);
+            font-size: 0.9rem;
+        }
+
+        .input-with-icon .suffix {
+            position: absolute;
+            right: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-500);
+            font-size: 0.9rem;
+        }
+
+        .input-with-icon input {
+            padding-left: 2rem;
+        }
+
+        .security-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .security-indicator.weak {
+            color: var(--danger);
+        }
+
+        .security-indicator.medium {
+            color: var(--warning);
+        }
+
+        .security-indicator.strong {
+            color: var(--success);
+        }
+
+        .code-inputs {
+            display: flex;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .critical-section {
+            border: 1px solid var(--danger);
+            background: linear-gradient(to bottom, rgba(239, 68, 68, 0.1) 0%, var(--gray-100) 50px);
+        }
+
+        .critical-section .card-header i {
+            color: var(--danger);
+        }
+
+        .buttons {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            font-weight: 500;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.95rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--box-shadow-lg);
+        }
+
+        .btn-secondary {
+            background: var(--gray-200);
+            color: var(--gray-700);
+            border: 1px solid var(--gray-300);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-300);
+            border-color: var(--gray-400);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+            box-shadow: var(--box-shadow-lg);
+        }
+
+        .status-message {
+            padding: 0.75rem 1rem;
+            border-radius: var(--border-radius-sm);
+            margin-bottom: 1rem;
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.95rem;
+        }
+
+        .status-message.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-message.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px;
+            z-index: 1001;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px !important;
+                transition: transform 0.3s ease;
+                position: fixed;
+                z-index: 1000;
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            .sidebar.collapsed {
+                width: 80px !important;
+            }
+            .sidebar.collapsed.mobile-open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0 !important;
+                width: 100%;
+            }
+            .sidebar.collapsed ~ .main-content {
+                margin-left: 0 !important;
+            }
+            .mobile-toggle {
+                display: flex !important;
+            }
+            .content-wrapper {
+                padding: 1rem;
+            }
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+            .buttons {
+                flex-direction: column;
+            }
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Loader */
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .loader-spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- LOADER GLOBAL -->
+    <div id="globalLoader" class="loader-overlay">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-header">
+                <div class="logo-area">
+                    <div class="logo-icon">E</div>
+                    <span class="logo-text">Educ<span>sen</span></span>
+                </div>
+                <button class="toggle-btn" id="toggleSidebar">
+                    <span class="material-icons" id="toggleIcon">chevron_left</span>
+                </button>
+            </div>
+        </div>
+
+        <nav class="nav-menu">
+            <a href="/userdashboard.html" class="nav-item">
+                <span class="nav-icon material-icons">dashboard</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="/user-admin/assistant.html" class="nav-item">
+                <span class="nav-icon material-icons">assessment</span>
+                <span>Assistant</span>
+            </a>
+            <a href="/user-admin/rapport.html" class="nav-item">
+                <span class="nav-icon material-icons">assessment</span>
+                <span>Rapport</span>
+            </a>
+            <a href="/user-admin/classes.html" class="nav-item">
+                <span class="nav-icon material-icons">school</span>
+                <span>Classes</span>
+            </a>
+            <a href="/user-admin/professeurs.html" class="nav-item">
+                <span class="nav-icon material-icons">person</span>
+                <span>Professeurs</span>
+            </a>
+            <a href="/user-admin/eleves.html" class="nav-item">
+                <span class="nav-icon material-icons">groups</span>
+                <span>Élèves</span>
+            </a>
+            <a href="/user-admin/notes.html" class="nav-item">
+                <span class="nav-icon material-icons">assignment</span>
+                <span>Notes</span>
+            </a>
+            <a href="/user-admin/parametres.html" class="nav-item active">
+                <span class="nav-icon material-icons">settings</span>
+                <span>Paramètres</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info" id="userInfo">
+                <div class="user-avatar" id="userAvatar">--</div>
+                <div class="user-details">
+                    <div class="user-name" id="userNameDisplay">Chargement...</div>
+                    <div class="user-role" id="userRole">-</div>
+                </div>
+            </div>
+            <button class="logout-btn" id="logoutBtn">
+                <span class="nav-icon material-icons">logout</span>
+                <span>Déconnexion</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Bouton toggle mobile -->
+    <button class="mobile-toggle" id="mobileToggle">
+        <span class="material-icons">menu</span>
+    </button>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content" id="mainContent">
+        <header class="main-header">
+            <div class="page-title">
+                <i class="fas fa-cogs"></i>
+                <h1>Paramètres</h1>
+            </div>
+            <div class="header-actions">
+                <div class="admin-info" id="headerAdminInfo">
+                    <div class="admin-avatar" id="headerAvatar">--</div>
+                    <div>
+                        <div class="admin-name" id="headerName">Chargement...</div>
+                        <div class="admin-role" id="headerRole">-</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="content-wrapper">
+            <div class="page-header">
+                <h2>Configurez les paramètres de votre établissement</h2>
+            </div>
+
+            <!-- Tabs (seulement 3 onglets) -->
+            <div class="tabs-container">
+                <div class="tabs">
+                    <button class="tab active" data-tab="seuils"><i class="fas fa-chart-line"></i> Seuils</button>
+                    <button class="tab" data-tab="securite"><i class="fas fa-shield-alt"></i> Sécurité</button>
+                    <button class="tab" data-tab="code-secret"><i class="fas fa-key"></i> Code secret</button>
+                </div>
+            </div>
+
+            <!-- Tab 1: Seuils -->
+            <div id="seuils" class="tab-content active">
+                <div id="seuils-success" class="status-message success"><i class="fas fa-check-circle"></i> <span></span></div>
+                <div class="card">
+                    <div class="card-header"><i class="fas fa-chart-line"></i><h3>Seuils de performance</h3></div>
+                    <p class="card-description">Définissez les seuils utilisés pour analyser les performances.</p>
+                    <div class="settings-grid">
+                        <div class="setting-group">
+                            <div class="setting-item">
+                                <label class="setting-label"><i class="fas fa-chalkboard-teacher"></i> Seuil "en difficulté" (profs)</label>
+                                <div class="input-with-icon">
+                                    <input type="number" class="setting-input" id="seuil-profs-difficulte" min="0" max="100" step="0.1">
+                                    <span class="suffix">%</span>
+                                </div>
+                            </div>
+                            <div class="setting-item">
+                                <label class="setting-label"><i class="fas fa-trophy"></i> Seuil "performant" (profs)</label>
+                                <div class="input-with-icon">
+                                    <input type="number" class="setting-input" id="seuil-profs-performant" min="0" max="100" step="0.1">
+                                    <span class="suffix">%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="setting-group">
+                            <div class="setting-item">
+                                <label class="setting-label"><i class="fas fa-user-graduate"></i> Seuil "en difficulté" (élèves)</label>
+                                <div class="input-with-icon">
+                                    <input type="number" class="setting-input" id="seuil-eleves-difficulte" min="0" max="20" step="0.1">
+                                    <span class="suffix">/20</span>
+                                </div>
+                            </div>
+                            <div class="setting-item">
+                                <label class="setting-label"><i class="fas fa-chart-line"></i> Seuil "en progression"</label>
+                                <div class="input-with-icon">
+                                    <input type="number" class="setting-input" id="seuil-eleves-progression" min="0" max="10" step="0.1">
+                                    <span class="suffix">points</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="buttons">
+                        <button id="save-seuils" class="btn btn-primary"><i class="fas fa-save"></i> Enregistrer</button>
+                        <button id="reset-seuils" class="btn btn-secondary"><i class="fas fa-undo"></i> Valeurs par défaut</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Sécurité -->
+            <div id="securite" class="tab-content">
+                <div id="securite-success" class="status-message success"><i class="fas fa-check-circle"></i> <span></span></div>
+                <div class="card">
+                    <div class="card-header"><i class="fas fa-shield-alt"></i><h3>Sécurité</h3></div>
+                    <p class="card-description">Paramètres de sécurité.</p>
+                    <div class="settings-grid">
+                        <div class="setting-group">
+                            <div class="setting-item">
+                                <label class="setting-label"><i class="fas fa-ban"></i> Tentatives maximales</label>
+                                <input type="number" class="setting-input" id="max-tentatives" min="1" max="10">
+                            </div>
+                            <div class="setting-item">
+                                <label class="setting-label"><i class="fas fa-clock"></i> Déconnexion automatique</label>
+                                <select class="setting-input" id="deconnexion-auto">
+                                    <option value="15">15 minutes</option>
+                                    <option value="30">30 minutes</option>
+                                    <option value="60">60 minutes</option>
+                                    <option value="120">2 heures</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="setting-group">
+                            <div class="setting-item">
+                                <label class="setting-label"><i class="fas fa-shield-alt"></i> Validation à deux facteurs</label>
+                                <select class="setting-input" id="2fa">
+                                    <option value="false">Désactivée</option>
+                                    <option value="true">Activée</option>
+                                </select>
+                            </div>
+                            <div class="setting-item">
+                                <label class="setting-label"><i class="fas fa-history"></i> Historique des connexions</label>
+                                <select class="setting-input" id="historique-connexions">
+                                    <option value="7">7 jours</option>
+                                    <option value="30">30 jours</option>
+                                    <option value="90">90 jours</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="buttons">
+                        <button id="save-securite" class="btn btn-primary"><i class="fas fa-save"></i> Enregistrer</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Code secret -->
+            <div id="code-secret" class="tab-content">
+                <div id="code-success" class="status-message success"><i class="fas fa-check-circle"></i> <span></span></div>
+                <div id="code-error" class="status-message error"><i class="fas fa-exclamation-circle"></i> <span id="code-error-text"></span></div>
+                <div class="card critical-section">
+                    <div class="card-header"><i class="fas fa-key"></i><h3>Code secret administrateur</h3></div>
+                    <p class="card-description">Modifiez le code secret utilisé pour la connexion rapide.</p>
+                    <form id="code-form">
+                        <div class="setting-item">
+                            <label class="setting-label"><i class="fas fa-lock"></i> Code secret actuel</label>
+                            <div class="input-with-icon">
+                                <input type="password" class="setting-input" id="current-code" maxlength="6" placeholder="●●●●●●" required>
+                            </div>
+                        </div>
+                        <div class="code-inputs">
+                            <div class="setting-item" style="flex:1;">
+                                <label class="setting-label"><i class="fas fa-key"></i> Nouveau code secret</label>
+                                <input type="password" class="setting-input" id="new-code" maxlength="6" placeholder="6 chiffres" required>
+                                <div class="security-indicator" id="security-level"><i class="fas fa-shield-alt"></i> <span>Saisissez 6 chiffres</span></div>
+                            </div>
+                            <div class="setting-item" style="flex:1;">
+                                <label class="setting-label"><i class="fas fa-redo"></i> Confirmer le code</label>
+                                <input type="password" class="setting-input" id="confirm-code" maxlength="6" placeholder="6 chiffres" required>
+                            </div>
+                        </div>
+                        <div class="buttons">
+                            <button type="submit" class="btn btn-primary" id="change-code-btn"><i class="fas fa-sync-alt"></i> Modifier le code</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FIREBASE MODULES -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
+        // Config Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7B-0O9mOdbIDQV-g6hsZx07G2ZvzKoxo",
+            authDomain: "real-educsen.firebaseapp.com",
+            projectId: "real-educsen",
+            storageBucket: "real-educsen.firebasestorage.app",
+            messagingSenderId: "80660233362",
+            appId: "1:80660233362:web:5edf5060254170056eba4b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Éléments DOM
+        const globalLoader = document.getElementById('globalLoader');
+        const userNameDisplay = document.getElementById('userNameDisplay');
+        const userRole = document.getElementById('userRole');
+        const userAvatar = document.getElementById('userAvatar');
+        const headerName = document.getElementById('headerName');
+        const headerRole = document.getElementById('headerRole');
+        const headerAvatar = document.getElementById('headerAvatar');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        // Variables utilisateur
+        let currentUser = null;
+        let currentUserData = null;
+        let currentParams = null;
+
+        // Valeurs par défaut des paramètres (seulement pour les onglets conservés)
+        const DEFAULT_PARAMS = {
+            seuils: {
+                profs_difficulte: 60,
+                profs_performant: 75,
+                eleves_difficulte: 10,
+                eleves_progression: 1.5
+            },
+            securite: {
+                max_tentatives: 5,
+                deconnexion_auto: "30",
+                deux_facteurs: "false",
+                historique_connexions: "30"
+            },
+            codeSecret: "000000"
+        };
+
+        function setLoading(loading) {
+            if (loading) globalLoader.classList.remove('hidden');
+            else globalLoader.classList.add('hidden');
+        }
+
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                window.location.href = 'connexion.html';
+            } catch (error) {
+                console.error('Erreur déconnexion', error);
+            }
+        });
+
+        async function loadUserData(user) {
+            setLoading(true);
+            try {
+                const userDocRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userDocRef);
+                if (userSnap.exists()) {
+                    currentUserData = userSnap.data();
+                } else {
+                    currentUserData = {
+                        email: user.email,
+                        nom: user.displayName || "Utilisateur",
+                        prenom: "",
+                        role: "administrateur",
+                        uid: user.uid
+                    };
+                    await setDoc(userDocRef, currentUserData);
+                }
+
+                const nomComplet = currentUserData.nom || currentUserData.prenom || "Utilisateur";
+                const initiales = (nomComplet.charAt(0) || "U").toUpperCase();
+                userAvatar.textContent = initiales;
+                headerAvatar.textContent = initiales;
+                userNameDisplay.textContent = nomComplet;
+                headerName.textContent = nomComplet;
+                const role = currentUserData.role || "administrateur";
+                userRole.textContent = role;
+                headerRole.textContent = role;
+
+                const paramsRef = doc(db, "parametres", user.uid);
+                const paramsSnap = await getDoc(paramsRef);
+                if (paramsSnap.exists()) {
+                    currentParams = paramsSnap.data();
+                } else {
+                    currentParams = DEFAULT_PARAMS;
+                    await setDoc(paramsRef, DEFAULT_PARAMS);
+                }
+
+                populateFields();
+
+            } catch (error) {
+                console.error("Erreur chargement données:", error);
+                alert("Erreur de chargement des paramètres.");
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        function populateFields() {
+            // Seuils
+            document.getElementById('seuil-profs-difficulte').value = currentParams.seuils?.profs_difficulte ?? DEFAULT_PARAMS.seuils.profs_difficulte;
+            document.getElementById('seuil-profs-performant').value = currentParams.seuils?.profs_performant ?? DEFAULT_PARAMS.seuils.profs_performant;
+            document.getElementById('seuil-eleves-difficulte').value = currentParams.seuils?.eleves_difficulte ?? DEFAULT_PARAMS.seuils.eleves_difficulte;
+            document.getElementById('seuil-eleves-progression').value = currentParams.seuils?.eleves_progression ?? DEFAULT_PARAMS.seuils.eleves_progression;
+
+            // Sécurité
+            document.getElementById('max-tentatives').value = currentParams.securite?.max_tentatives ?? DEFAULT_PARAMS.securite.max_tentatives;
+            document.getElementById('deconnexion-auto').value = currentParams.securite?.deconnexion_auto ?? DEFAULT_PARAMS.securite.deconnexion_auto;
+            document.getElementById('2fa').value = currentParams.securite?.deux_facteurs ?? DEFAULT_PARAMS.securite.deux_facteurs;
+            document.getElementById('historique-connexions').value = currentParams.securite?.historique_connexions ?? DEFAULT_PARAMS.securite.historique_connexions;
+        }
+
+        async function updateParams(updatedFields) {
+            if (!currentUser) return false;
+            setLoading(true);
+            try {
+                const paramsRef = doc(db, "parametres", currentUser.uid);
+                await updateDoc(paramsRef, updatedFields);
+                Object.assign(currentParams, updatedFields);
+                return true;
+            } catch (error) {
+                console.error("Erreur mise à jour:", error);
+                return false;
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        // Sauvegarde seuils
+        document.getElementById('save-seuils').addEventListener('click', async () => {
+            const updated = {
+                seuils: {
+                    profs_difficulte: parseFloat(document.getElementById('seuil-profs-difficulte').value),
+                    profs_performant: parseFloat(document.getElementById('seuil-profs-performant').value),
+                    eleves_difficulte: parseFloat(document.getElementById('seuil-eleves-difficulte').value),
+                    eleves_progression: parseFloat(document.getElementById('seuil-eleves-progression').value)
+                }
+            };
+            const success = await updateParams(updated);
+            if (success) showMessage('seuils-success', 'Seuils mis à jour.');
+        });
+
+        document.getElementById('reset-seuils').addEventListener('click', async () => {
+            if (!confirm('Rétablir les valeurs par défaut ?')) return;
+            const updated = { seuils: DEFAULT_PARAMS.seuils };
+            const success = await updateParams(updated);
+            if (success) {
+                document.getElementById('seuil-profs-difficulte').value = DEFAULT_PARAMS.seuils.profs_difficulte;
+                document.getElementById('seuil-profs-performant').value = DEFAULT_PARAMS.seuils.profs_performant;
+                document.getElementById('seuil-eleves-difficulte').value = DEFAULT_PARAMS.seuils.eleves_difficulte;
+                document.getElementById('seuil-eleves-progression').value = DEFAULT_PARAMS.seuils.eleves_progression;
+                showMessage('seuils-success', 'Valeurs par défaut rétablies.');
+            }
+        });
+
+        // Sauvegarde sécurité
+        document.getElementById('save-securite').addEventListener('click', async () => {
+            const updated = {
+                securite: {
+                    max_tentatives: parseInt(document.getElementById('max-tentatives').value),
+                    deconnexion_auto: document.getElementById('deconnexion-auto').value,
+                    deux_facteurs: document.getElementById('2fa').value,
+                    historique_connexions: document.getElementById('historique-connexions').value
+                }
+            };
+            const success = await updateParams(updated);
+            if (success) showMessage('securite-success', 'Paramètres de sécurité mis à jour.');
+        });
+
+        // Code secret
+        document.getElementById('code-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const currentCodeInput = document.getElementById('current-code').value;
+            const newCode = document.getElementById('new-code').value;
+            const confirmCode = document.getElementById('confirm-code').value;
+
+            if (!/^\d{6}$/.test(currentCodeInput)) return showError('Le code actuel doit contenir 6 chiffres.');
+            if (!/^\d{6}$/.test(newCode)) return showError('Le nouveau code doit contenir 6 chiffres.');
+            if (newCode !== confirmCode) return showError('Les codes ne correspondent pas.');
+
+            if (currentParams.codeSecret !== currentCodeInput) {
+                return showError('Code actuel incorrect.');
+            }
+
+            const success = await updateParams({ codeSecret: newCode });
+            if (success) {
+                showMessage('code-success', 'Code secret mis à jour.');
+                document.getElementById('code-form').reset();
+                document.getElementById('security-level').innerHTML = '<i class="fas fa-shield-alt"></i> <span>Saisissez 6 chiffres</span>';
+            }
+        });
+
+        // Sécurité du nouveau code
+        document.getElementById('new-code').addEventListener('input', function() {
+            const code = this.value;
+            const securityLevel = document.getElementById('security-level');
+            if (code.length === 6 && /^\d+$/.test(code)) {
+                const unique = new Set(code.split('')).size;
+                if (unique <= 2) securityLevel.className = 'security-indicator weak';
+                else if (unique <= 3) securityLevel.className = 'security-indicator medium';
+                else securityLevel.className = 'security-indicator strong';
+                securityLevel.innerHTML = `<i class="fas fa-shield-alt"></i> <span>${securityLevel.className.includes('strong')?'Code sécurisé':'Sécurité moyenne'}</span>`;
+            } else {
+                securityLevel.className = 'security-indicator';
+                securityLevel.innerHTML = '<i class="fas fa-shield-alt"></i> <span>Saisissez 6 chiffres</span>';
+            }
+        });
+
+        function showMessage(elementId, text) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            el.querySelector('span').textContent = text;
+            el.style.display = 'flex';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+
+        function showError(text) {
+            const el = document.getElementById('code-error');
+            document.getElementById('code-error-text').textContent = text;
+            el.style.display = 'flex';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
+
+        // Gestion de l'authentification
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = 'connexion.html';
+                return;
+            }
+            currentUser = user;
+            loadUserData(user);
+        });
+
+        // Gestion sidebar (identique)
+        (function() {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('toggleSidebar');
+            const toggleIcon = document.getElementById('toggleIcon');
+            const mobileToggle = document.getElementById('mobileToggle');
+
+            if (toggleBtn && sidebar) {
+                toggleBtn.addEventListener('click', () => {
+                    sidebar.classList.toggle('collapsed');
+                    toggleIcon.textContent = sidebar.classList.contains('collapsed') ? 'chevron_right' : 'chevron_left';
+                });
+            }
+
+            if (mobileToggle && sidebar) {
+                mobileToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('mobile-open');
+                    if (window.innerWidth <= 768 && sidebar.classList.contains('collapsed')) {
+                        sidebar.classList.remove('collapsed');
+                        toggleIcon.textContent = 'chevron_left';
+                    }
+                });
+            }
+
+            function handleResize() {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('collapsed');
+                    toggleIcon.textContent = 'chevron_left';
+                } else {
+                    sidebar.classList.remove('mobile-open');
+                }
+            }
+            window.addEventListener('resize', handleResize);
+            handleResize();
+        })();
+
+        // Gestion des onglets (seulement 3)
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

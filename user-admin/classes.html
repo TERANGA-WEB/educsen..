@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edusen · Gestion des classes</title>
+    <!-- Material Icons & Google Fonts -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f3f4f6;
+            color: #1e293b;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ---------- SIDEBAR (nouvelle version avec toggle intégré) ---------- */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar-header {
+            padding: 20px 16px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .logo-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .logo-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: opacity 0.2s;
+        }
+
+        .sidebar.collapsed .logo-text {
+            opacity: 0;
+            width: 0;
+        }
+
+        /* Bouton toggle intégré */
+        .toggle-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #4b5563;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 24px;
+            margin: 0 12px;
+            border-radius: 12px;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-item .nav-icon {
+            font-size: 1.5rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-item span:last-child {
+            transition: opacity 0.2s;
+        }
+
+        .sidebar.collapsed .nav-item span:last-child {
+            opacity: 0;
+            width: 0;
+            display: none;
+        }
+
+        .nav-item.active {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 8px 16px -4px rgba(59,130,246,0.3);
+        }
+
+        .nav-item:hover:not(.active) {
+            background: #334155;
+            color: white;
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid #334155;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            white-space: nowrap;
+        }
+
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            background: #3b82f6;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .user-details {
+            overflow: hidden;
+        }
+
+        .user-name {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-transform: capitalize;
+        }
+
+        .sidebar.collapsed .user-details {
+            opacity: 0;
+            width: 0;
+        }
+
+        /* ---------- MAIN WRAPPER ---------- */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .main-content {
+            padding: 30px 32px;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(59,130,246,0.3);
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(59,130,246,0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            border: 1px solid #e2e8f0;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: 500;
+            color: #475569;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            text-decoration: none;
+        }
+
+        .btn-secondary:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        /* Conteneur des cartes */
+        .table-container {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+            min-height: 300px;
+        }
+
+        /* --- Styles des cartes avec boutons flottants --- */
+        .class-card {
+            position: relative;
+            background: white;
+            border-radius: 24px;
+            padding: 30px 20px;
+            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 15px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .class-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+        }
+
+        /* Bouton Modifier : caché par défaut, visible au hover */
+        .edit-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s, transform 0.2s;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .class-card:hover .edit-btn {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1.05);
+        }
+
+        .edit-btn:hover {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+        }
+
+        /* Bouton Supprimer (gauche, rouge) */
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.2s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            pointer-events: none;
+        }
+
+        .class-card:hover .delete-btn {
+            opacity: 1;
+            pointer-events: auto;
+            transform: scale(1.05);
+        }
+
+        .delete-btn:hover {
+            background: #dc2626;
+        }
+
+        .created-at {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state .material-icons {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 1.2rem;
+            margin-bottom: 24px;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 60px;
+            color: #3b82f6;
+        }
+
+        /* ---------- STYLES DES ALERTES ---------- */
+        .alert {
+            padding: 16px 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            animation: slideIn 0.2s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            border-left: 6px solid #ef4444;
+            color: #7f1d1d;
+        }
+
+        .alert-warning {
+            background: #fef9c3;
+            border-left: 6px solid #f59e0b;
+            color: #92400e;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            border-left: 6px solid #10b981;
+            color: #065f46;
+        }
+
+        .alert .material-icons {
+            font-size: 1.8rem;
+        }
+
+        /* Alertes de confirmation (avec boutons) */
+        .confirm-actions {
+            display: flex;
+            gap: 12px;
+            margin-left: auto;
+        }
+
+        .confirm-actions .btn-primary,
+        .confirm-actions .btn-secondary {
+            padding: 8px 20px;
+            font-size: 0.95rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 80px;
+            }
+            .sidebar .logo-text,
+            .sidebar .nav-item span:last-child,
+            .sidebar .user-details {
+                opacity: 0;
+                display: none;
+            }
+            .toggle-btn {
+                /* reste visible */
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- NOUVELLE SIDEBAR AVEC TOGGLE INTÉGRÉ -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-header">
+                <div class="logo-area">
+                    <div class="logo-icon">E</div>
+                    <span class="logo-text">Edu<span style="color:#3b82f6;">sen</span></span>
+                </div>
+                <button class="toggle-btn" id="toggleSidebar">
+                    <span class="material-icons" id="toggleIcon">chevron_left</span>
+                </button>
+            </div>
+        </div>
+
+
+        <nav class="nav-menu">
+            <a href="/userdashboard.html" class="nav-item active">
+                <span class="nav-icon material-icons">dashboard</span>
+                <span>Dashboard</span>
+            </a>
+             <a href="/user-admin/assistant.html" class="nav-item">
+                <span class="nav-icon material-icons">assessment</span>
+                <span>Assistant</span>
+            </a>
+            <a href="/user-admin/rapport.html" class="nav-item">
+                <span class="nav-icon material-icons">assessment</span>
+                <span>Rapport</span>
+            </a>
+            <a href="/user-admin/classes.html" class="nav-item">
+                <span class="nav-icon material-icons">school</span>
+                <span>Classes</span>
+            </a>
+            <a href="/user-admin/professeurs.html" class="nav-item">
+                <span class="nav-icon material-icons">person</span>
+                <span>Professeurs</span>
+            </a>
+            <a href="/user-admin/eleves.html" class="nav-item">
+                <span class="nav-icon material-icons">groups</span>
+                <span>Élèves</span>
+            </a>
+            <a href="/user-admin/notes.html" class="nav-item">
+                <span class="nav-icon material-icons">assignment</span>
+                <span>Notes</span>
+            </a>
+            <a href="/user-admin/parametres.html" class="nav-item">
+                <span class="nav-icon material-icons">settings</span>
+                <span>Paramètres</span>
+            </a>
+        </nav>
+
+
+        <div class="sidebar-footer">
+            <div class="user-info" id="userInfo">
+                <div class="user-avatar" id="userAvatar">AD</div>
+                <div class="user-details">
+                    <div class="user-name" id="userName">Admin</div>
+                    <div class="user-role" id="userRole">admin</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT (inchangé, sauf suppression de l'ancien toggle) -->
+    <div class="main-wrapper">
+        <!-- L'ancien toggle a été supprimé, il est maintenant dans la sidebar -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1>Gestion des classes</h1>
+                <a href="ajouter-classe.html" class="btn-primary">
+                    <span class="material-icons">add</span> Ajouter une classe
+                </a>
+            </div>
+
+            <div id="alertContainer"></div>
+
+            <div class="table-container" id="classesTableContainer">
+                <div class="loading-spinner" id="loading">
+                    <span class="material-icons" style="font-size:2rem; animation: spin 1s linear infinite;">sync</span>
+                    <p>Chargement des classes...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase Import Map (inchangé) -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js",
+                "firebase/auth": "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        // ---------- 1. IMPORTS FIREBASE ----------
+        import { initializeApp } from 'firebase/app';
+        import { getAuth, onAuthStateChanged } from 'firebase/auth';
+        import { 
+            getFirestore, 
+            collection, 
+            query, 
+            orderBy, 
+            getDocs, 
+            doc,
+            getDoc,
+            writeBatch
+        } from 'firebase/firestore';
+
+        // ---------- 2. CONFIG FIREBASE ----------
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7B-0O9mOdbIDQV-g6hsZx07G2ZvzKoxo",
+            authDomain: "real-educsen.firebaseapp.com",
+            projectId: "real-educsen",
+            storageBucket: "real-educsen.firebasestorage.app",
+            messagingSenderId: "80660233362",
+            appId: "1:80660233362:web:5edf5060254170056eba4b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // ---------- 3. ÉLÉMENTS DOM ----------
+        const alertContainer = document.getElementById('alertContainer');
+        const loading = document.getElementById('loading');
+        const tableContainer = document.getElementById('classesTableContainer');
+        const toggleBtn = document.getElementById('toggleSidebar');
+        const sidebar = document.getElementById('sidebar');
+        const toggleIcon = document.getElementById('toggleIcon');
+        const userAvatar = document.getElementById('userAvatar');
+        const userNameSpan = document.getElementById('userName');
+        const userRoleSpan = document.getElementById('userRole');
+
+        // ---------- 4. ÉTAT GLOBAL ----------
+        let currentUser = null;
+        let userRole = null;          // 'admin', 'teacher' ou autre
+        let classes = [];
+
+        // ---------- 5. SYSTÈME D'ALERTES PERSONNALISÉ ----------
+        let alertTimeout = null;
+        let currentConfirmResolver = null; // pour gérer les confirmations
+
+        function clearAlert() {
+            if (alertTimeout) {
+                clearTimeout(alertTimeout);
+                alertTimeout = null;
+            }
+            alertContainer.innerHTML = '';
+        }
+
+        /**
+         * Affiche une alerte simple (non confirmable) dans le DOM.
+         * @param {string} message - Le message à afficher.
+         * @param {string} type - 'error', 'warning', 'success' (défaut 'error').
+         * @param {number} duration - Durée d'affichage en ms (0 = persistant, défaut 5000).
+         */
+        function showAlert(message, type = 'error', duration = 5000) {
+            clearAlert(); // supprime toute alerte précédente
+
+            const icons = {
+                error: 'error',
+                warning: 'warning',
+                success: 'check_circle'
+            };
+            const iconName = icons[type] || 'info';
+
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = `
+                <span class="material-icons">${iconName}</span>
+                <span>${message}</span>
+            `;
+
+            alertContainer.appendChild(alertDiv);
+
+            if (duration > 0) {
+                alertTimeout = setTimeout(() => {
+                    alertDiv.remove();
+                    alertTimeout = null;
+                }, duration);
+            }
+        }
+
+        /**
+         * Affiche une boîte de confirmation personnalisée avec boutons Oui/Non.
+         * @param {string} message - La question à poser.
+         * @returns {Promise<boolean>} - Résout true si Oui, false si Non.
+         */
+        function showConfirm(message) {
+            return new Promise((resolve) => {
+                clearAlert(); // supprime toute alerte existante
+
+                // Stocker le resolver pour pouvoir résoudre la promesse plus tard
+                currentConfirmResolver = resolve;
+
+                const confirmDiv = document.createElement('div');
+                confirmDiv.className = 'alert alert-warning'; // fond jaune pour attirer l'attention
+                confirmDiv.innerHTML = `
+                    <span class="material-icons">warning</span>
+                    <span>${message}</span>
+                    <div class="confirm-actions">
+                        <button class="btn-primary" id="confirmYes">Oui</button>
+                        <button class="btn-secondary" id="confirmNo">Non</button>
+                    </div>
+                `;
+
+                alertContainer.appendChild(confirmDiv);
+
+                // Gestionnaires d'événements
+                document.getElementById('confirmYes').addEventListener('click', () => {
+                    clearAlert();
+                    currentConfirmResolver(true);
+                    currentConfirmResolver = null;
+                });
+
+                document.getElementById('confirmNo').addEventListener('click', () => {
+                    clearAlert();
+                    currentConfirmResolver(false);
+                    currentConfirmResolver = null;
+                });
+
+                // Ne pas auto-disparaître, l'utilisateur doit cliquer
+            });
+        }
+
+        // ---------- 6. AFFICHAGE DES CLASSES ----------
+        function renderClassesTable() {
+            if (classes.length === 0) {
+                tableContainer.innerHTML = `
+                    <div class="empty-state">
+                        <span class="material-icons">school</span>
+                        <p>Aucune classe enregistrée</p>
+                        <a href="ajouter-classe.html" class="btn-primary">
+                            <span class="material-icons">add</span> Créer une classe
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <div style="
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                    gap: 24px;
+                ">
+            `;
+
+            classes.forEach(cls => {
+                const className = cls.nomClasse || cls.name || 'Sans nom';
+                const studentCount = cls.nombreEleves || cls.nbStudents || 0;
+
+                // --- Gestion robuste de la date de création ---
+                let createdAt = 'N/A';
+                if (cls.createdAt) {
+                    if (typeof cls.createdAt.toDate === 'function') {
+                        createdAt = cls.createdAt.toDate().toLocaleDateString('fr-FR');
+                    } else {
+                        const date = new Date(cls.createdAt);
+                        if (!isNaN(date)) {
+                            createdAt = date.toLocaleDateString('fr-FR');
+                        }
+                    }
+                }
+
+                html += `
+                    <div class="class-card">
+                        <!-- Bouton Supprimer (visible au survol) -->
+                        <button class="delete-btn" onclick="deleteClass('${cls.id}')">
+                            <span class="material-icons" style="font-size: 1.1rem;">delete</span>
+                        </button>
+                        <!-- Bouton Modifier (visible au survol) -->
+                        <button class="edit-btn" onclick="editClass('${cls.id}')">
+                            <span class="material-icons" style="font-size: 1.1rem;">edit</span>
+                            Modifier
+                        </button>
+                        <h2 style="font-size: 1.4rem; font-weight: 600;">
+                            ${className}
+                        </h2>
+                        <div style="color: #64748b; font-size: 0.9rem;">
+                            ${studentCount} élève${studentCount > 1 ? 's' : ''}
+                        </div>
+                        <div class="created-at">
+                            Créée le ${createdAt}
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            tableContainer.innerHTML = html;
+        }
+
+        // ---------- 7. CHARGEMENT DES CLASSES ----------
+        async function loadClasses() {
+            if (!currentUser) return;
+            
+            clearAlert();
+            loading.style.display = 'block';
+            tableContainer.innerHTML = '';
+            tableContainer.appendChild(loading);
+
+            try {
+                const classesRef = collection(db, 'classes');
+                const q = query(classesRef, orderBy('createdAt', 'desc'));
+
+                const snapshot = await getDocs(q);
+                
+                classes = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                loading.style.display = 'none';
+                renderClassesTable();
+
+            } catch (error) {
+                console.error('Erreur chargement classes:', error);
+                loading.style.display = 'none';
+                showAlert('Erreur lors du chargement des classes.', 'error');
+            }
+        }
+
+        // ---------- 8. MODIFICATION ----------
+        window.editClass = function(classId) {
+            window.location.href = `ajouter-classe.html?id=${classId}`;
+        };
+
+        // ---------- 9. SUPPRESSION AVEC CONFIRMATION PERSONNALISÉE ----------
+        window.deleteClass = async function(classId) {
+            // Utilisation de notre confirmation DOM au lieu de confirm()
+            const confirmed = await showConfirm('⚠️ Cette action est irréversible. Voulez-vous continuer ?');
+            
+            if (!confirmed) {
+                return; // utilisateur a annulé
+            }
+
+            try {
+                // Récupérer tous les élèves de la sous-collection
+                const elevesRef = collection(db, 'classes', classId, 'eleves');
+                const elevesSnap = await getDocs(elevesRef);
+
+                // Créer un batch
+                const batch = writeBatch(db);
+
+                // Ajouter la suppression de chaque élève au batch
+                elevesSnap.docs.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+
+                // Ajouter la suppression du document classe
+                const classRef = doc(db, 'classes', classId);
+                batch.delete(classRef);
+
+                // Exécuter le batch
+                await batch.commit();
+
+                showAlert('Classe supprimée avec succès.', 'success');
+                
+                // Recharger la liste des classes
+                await loadClasses();
+
+            } catch (error) {
+                console.error('Erreur suppression classe:', error);
+                showAlert('Erreur lors de la suppression de la classe.', 'error');
+            }
+        };
+
+        // ---------- 10. AUTH ET RÉCUPÉRATION DU RÔLE ----------
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.replace('login.html');
+                return;
+            }
+
+            currentUser = user;
+
+            try {
+                const userDocRef = doc(db, 'users', user.uid);
+                const userSnap = await getDoc(userDocRef);
+
+                if (!userSnap.exists()) {
+                    window.location.replace('createCodeUser.html');
+                    return;
+                }
+
+                const userData = userSnap.data();
+                userRole = userData.role || 'user';
+
+                userNameSpan.textContent = user.displayName || user.email || 'Utilisateur';
+                userRoleSpan.textContent = userRole;
+                userAvatar.textContent = (user.displayName?.charAt(0) || user.email?.charAt(0) || 'U').toUpperCase();
+
+                await loadClasses();
+
+            } catch (error) {
+                console.error('Erreur récupération utilisateur:', error);
+                showAlert('Erreur de connexion. Veuillez rafraîchir.', 'error');
+            }
+        });
+
+        // ---------- 11. SIDEBAR TOGGLE (inchangé, mais bouton maintenant dans sidebar) ----------
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            toggleIcon.textContent = sidebar.classList.contains('collapsed') ? 'chevron_right' : 'chevron_left';
+        });
+
+        function handleResize() {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.add('collapsed');
+                toggleIcon.textContent = 'chevron_right';
+            } else {
+                sidebar.classList.remove('collapsed');
+                toggleIcon.textContent = 'chevron_left';
+            }
+        }
+        window.addEventListener('resize', handleResize);
+        handleResize();
+    </script>
+</body>
+</html>

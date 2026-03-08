@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Migration Élèves | EducSen</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background: #0f172a;
+    color: white;
+    text-align: center;
+    padding: 40px;
+}
+button{
+    padding: 15px 30px;
+    font-size: 16px;
+    border: none;
+    border-radius: 8px;
+    background: #2563eb;
+    color: white;
+    cursor: pointer;
+    margin-top: 20px;
+}
+button:hover{
+    background: #1e40af;
+}
+#log{
+    margin-top: 30px;
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: left;
+    max-height: 400px;
+    overflow-y: auto;
+}
+.success{ color: #22c55e; }
+.error{ color: #ef4444; }
+</style>
+</head>
+
+<body>
+
+<h1>Migration des Élèves vers collection globale</h1>
+<p>⚠️ À lancer une seule fois</p>
+<button onclick="migrateEleves()">Lancer la migration</button>
+
+<div id="log"></div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  doc,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+            apiKey: "AIzaSyD7B-0O9mOdbIDQV-g6hsZx07G2ZvzKoxo",
+            authDomain: "real-educsen.firebaseapp.com",
+            projectId: "real-educsen",
+            storageBucket: "real-educsen.firebasestorage.app",
+            messagingSenderId: "80660233362",
+            appId: "1:80660233362:web:5edf5060254170056eba4b"
+        };
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const logDiv = document.getElementById("log");
+
+window.logMessage = function(message, type=""){
+    const p = document.createElement("p");
+    p.className = type;
+    p.textContent = message;
+    logDiv.appendChild(p);
+    logDiv.scrollTop = logDiv.scrollHeight;
+};
+
+window.migrateEleves = async function() {
+
+    window.logMessage("🚀 Début migration élèves...");
+
+    try {
+
+        const classesSnapshot = await getDocs(collection(db, "classes"));
+
+        window.logMessage("Classes trouvées : " + classesSnapshot.size);
+
+        for (const classDoc of classesSnapshot.docs) {
+
+            const classeId = classDoc.id;
+            const classeData = classDoc.data();
+            const classeNom = classeData.classeNom || classeData.nom || "Classe inconnue";
+
+            window.logMessage("📚 Classe : " + classeNom);
+
+            const elevesSnapshot = await getDocs(
+                collection(db, `classes/${classeId}/eleves`)
+            );
+
+            for (const eleveDoc of elevesSnapshot.docs) {
+
+                const eleveData = eleveDoc.data();
+
+                await setDoc(
+                    doc(collection(db, "eleves")), // ✅ ID automatique sécurisé
+                    {
+                        ...eleveData,
+                        classeId: classeId,
+                        classeNom: classeNom,
+                        fullName: (eleveData.prenom || "") + " " + (eleveData.nom || ""),
+                        migratedAt: new Date()
+                    }
+                );
+
+                window.logMessage(
+                    "✅ Élève migré : " + (eleveData.prenom || "") + " " + (eleveData.nom || ""),
+                    "success"
+                );
+            }
+        }
+
+        window.logMessage("🎉 Migration terminée avec succès !", "success");
+
+    } catch (error) {
+        console.error(error);
+        window.logMessage("❌ Erreur : " + error.message, "error");
+    }
+};
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Educsen</title>
+    <!-- Google Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        /* ====== RESET & BASE STYLES ====== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            color: #1e293b;
+        }
+
+        /* ====== LOADER (animation du logo) ====== */
+        .loader-section {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .loader-section.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .icon-container {
+            width: 11.7rem; 
+            height: 11.7rem;
+            position: relative;
+        }
+
+        .svg-icon {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 0px rgba(2, 209, 225, 0));
+            animation: glowIcon 2s ease-in-out 2.5s forwards;
+        }
+
+        /* Animation de dessin des traits */
+        .drawing-path {
+            stroke-dasharray: 600;
+            stroke-dashoffset: 600;
+            animation: drawLines 2.5s ease-out forwards;
+        }
+
+        .logo-text {
+            font-weight: bold;
+            font-size: 4.8rem; 
+            font-family: sans-serif;
+            color: #2a2a72; 
+            opacity: 0;
+            letter-spacing: 15px;
+            animation: revealText 1.2s cubic-bezier(0.22, 1, 0.36, 1) 2s forwards;
+        }
+
+        .svg-text-ia {
+            font-weight: bold;
+            font-size: 24px;
+            font-family: sans-serif;
+            fill: #2a2a72;
+            opacity: 0;
+            animation: fadeInIA 1s ease-out 2.2s forwards;
+        }
+
+        @keyframes drawLines {
+            to { stroke-dashoffset: 0; }
+        }
+
+        @keyframes glowIcon {
+            to { filter: drop-shadow(0 0 8px rgba(2, 209, 225, 0.5)); }
+        }
+
+        @keyframes revealText {
+            from {
+                opacity: 0;
+                letter-spacing: 15px;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                letter-spacing: 2px;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes fadeInIA {
+            to { opacity: 1; }
+        }
+
+        /* ========== SIDEBAR ========== */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar-header {
+            padding: 20px 16px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .logo-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+        }
+
+        .sidebar .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .sidebar .logo-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: opacity 0.2s;
+            color: white;
+        }
+
+        .sidebar.collapsed .logo-text {
+            opacity: 0;
+            width: 0;
+        }
+
+        .sidebar .logo-text span {
+            color: #3b82f6;
+        }
+
+        .toggle-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #4b5563;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 24px;
+            margin: 0 12px;
+            border-radius: 12px;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-item .nav-icon {
+            font-size: 1.5rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-item span:last-child {
+            transition: opacity 0.2s;
+        }
+
+        .sidebar.collapsed .nav-item span:last-child {
+            opacity: 0;
+            width: 0;
+            display: none;
+        }
+
+        .nav-item.active {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 8px 16px -4px rgba(59,130,246,0.3);
+        }
+
+        .nav-item:hover:not(.active) {
+            background: #334155;
+            color: white;
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid #334155;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            white-space: nowrap;
+            margin-bottom: 12px;
+        }
+
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            background: #3b82f6;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .user-details {
+            overflow: hidden;
+        }
+
+        .user-name {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-transform: capitalize;
+        }
+
+        .sidebar.collapsed .user-details {
+            opacity: 0;
+            width: 0;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            white-space: nowrap;
+            text-decoration: none;
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px;
+            z-index: 1001;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+            transition: margin-left 0.3s ease;
+            width: calc(100% - 280px);
+        }
+
+        .sidebar.collapsed ~ .main-content {
+            margin-left: 80px;
+            width: calc(100% - 80px);
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            background: white;
+            padding: 25px 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+            border: 1px solid #e2e8f0;
+        }
+
+        .dashboard-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1e293b;
+            letter-spacing: -0.5px;
+        }
+
+        .current-date {
+            font-size: 15px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 16px 16px 0 0;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .stat-title {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            box-shadow: 0 8px 16px -4px rgba(0,0,0,0.1);
+        }
+
+        .stat-icon.classes { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .stat-icon.teachers { background: linear-gradient(135deg, #10b981, #059669); }
+        .stat-icon.students { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .stat-icon.performance { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: #1e293b;
+        }
+
+        .stat-change {
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .section:hover {
+            box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 15px;
+        }
+
+        .view-link {
+            font-size: 14px;
+            color: #3b82f6;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .view-link:hover {
+            color: #2563eb;
+            text-decoration: underline;
+        }
+
+        .alerts-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .alert-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            padding: 20px;
+            border-radius: 12px;
+            background-color: #f8fafc;
+            border-left: 4px solid #cbd5e1;
+            transition: transform 0.2s;
+        }
+
+        .alert-item:hover {
+            transform: translateX(5px);
+        }
+
+        .alert-item.info {
+            background-color: #eff6ff;
+            border-left-color: #3b82f6;
+        }
+
+        .alert-item.warning {
+            background-color: #fef9c3;
+            border-left-color: #f59e0b;
+        }
+
+        .alert-item.good {
+            background-color: #f0fdf4;
+            border-left-color: #10b981;
+        }
+
+        .alert-icon {
+            font-size: 20px;
+            margin-top: 2px;
+        }
+
+        .alert-item.info .alert-icon { color: #3b82f6; }
+        .alert-item.warning .alert-icon { color: #f59e0b; }
+        .alert-item.good .alert-icon { color: #10b981; }
+
+        .alert-content h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #1e293b;
+        }
+
+        .alert-content p {
+            font-size: 14px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        .teachers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .teacher-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 15px;
+            background-color: #f8fafc;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+
+        .teacher-item:hover {
+            background-color: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .teacher-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .teacher-info {
+            flex: 1;
+        }
+
+        .teacher-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #1e293b;
+        }
+
+        .teacher-subject {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .students-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .metric {
+            text-align: center;
+            padding: 25px 20px;
+            border-radius: 12px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+
+        .metric:hover {
+            background-color: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 5px;
+            color: #1e293b;
+        }
+
+        .metric-label {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+        }
+
+        .action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 25px 15px;
+            background: linear-gradient(145deg, #ffffff, #f8fafc);
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: #1e293b;
+            box-shadow: 0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+
+        .action-btn:hover {
+            background: white;
+            border-color: #3b82f6;
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(59,130,246,0.2);
+        }
+
+        .action-icon {
+            font-size: 32px;
+            color: #3b82f6;
+            margin-bottom: 10px;
+        }
+
+        .action-label {
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 40px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 40px;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            color: #cbd5e1;
+            margin-bottom: 20px;
+        }
+
+        .empty-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #1e293b;
+        }
+
+        .empty-text {
+            font-size: 16px;
+            color: #64748b;
+            margin-bottom: 30px;
+            max-width: 500px;
+            margin: 0 auto 30px;
+            line-height: 1.6;
+        }
+
+        .empty-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .data-status {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748b;
+        }
+
+        .data-status-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+            color: #94a3b8;
+        }
+
+        .data-status-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #1e293b;
+        }
+
+        .data-status-text {
+            font-size: 14px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            color: #64748b;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 1200px) {
+            .stats-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px !important;
+                transition: transform 0.3s ease;
+                position: fixed;
+            }
+            
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .sidebar.collapsed {
+                width: 280px !important;
+            }
+            
+            .sidebar.collapsed ~ .main-content {
+                margin-left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+                width: 100%;
+                padding: 20px;
+            }
+            
+            .mobile-toggle {
+                display: flex !important;
+            }
+            
+            .stats-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .students-metrics {
+                grid-template-columns: 1fr;
+            }
+
+            /* Ajustements loader pour mobile */
+            .icon-container {
+                width: 9rem;
+                height: 9rem;
+            }
+            .logo-text {
+                font-size: 3.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- LOADER (animation du logo) -->
+    <div class="loader-section" id="loaderSection">
+        <div class="logo-container">
+            <div class="icon-container">
+                <svg viewBox="0 0 100 115" class="svg-icon" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#2a2a72;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#02d1e1;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <path class="drawing-path" d="
+                        M 50 0 L 100 28.75 L 100 86.25 L 50 115 L 0 86.25 L 0 28.75 Z
+                        M 50 0 L 100 86.25 L 0 86.25 Z
+                        M 100 28.75 L 50 115 L 0 28.75 Z
+                    "
+                    stroke="url(#iconGradient)"
+                    stroke-width="3"
+                    fill="none" /> 
+                    <path class="drawing-path" d="
+                        M 50 28.5 L 75 42.9 L 75 72.1 L 50 86.5 L 25 72.1 L 25 42.9 Z
+                    "
+                    stroke="url(#iconGradient)"
+                    stroke-width="3"
+                    fill="none" /> 
+                    <text x="50" y="57.5" text-anchor="middle" dominant-baseline="central" class="svg-text-ia">IA</text>
+                </svg>
+            </div>
+            <div class="logo-text">EDUCSEN</div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-header">
+                <div class="logo-area">
+                    <div class="logo-icon">E</div>
+                    <span class="logo-text">Educ<span>sen</span></span>
+                </div>
+                <button class="toggle-btn" id="toggleSidebar">
+                    <span class="material-icons" id="toggleIcon">chevron_left</span>
+                </button>
+            </div>
+        </div>
+
+        <nav class="nav-menu">
+            <a href="/userdashboard.html" class="nav-item active">
+                <span class="nav-icon material-icons">dashboard</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="/user-admin/assistant.html" class="nav-item">
+                <span class="nav-icon material-icons">assessment</span>
+                <span>Assistant</span>
+            </a>
+            <a href="/user-admin/rapport.html" class="nav-item">
+                <span class="nav-icon material-icons">assessment</span>
+                <span>Rapport</span>
+            </a>
+            <a href="/user-admin/classes.html" class="nav-item">
+                <span class="nav-icon material-icons">school</span>
+                <span>Classes</span>
+            </a>
+            <a href="/user-admin/professeurs.html" class="nav-item">
+                <span class="nav-icon material-icons">person</span>
+                <span>Professeurs</span>
+            </a>
+            <a href="/user-admin/eleves.html" class="nav-item">
+                <span class="nav-icon material-icons">groups</span>
+                <span>Élèves</span>
+            </a>
+            <a href="/user-admin/notes.html" class="nav-item">
+                <span class="nav-icon material-icons">assignment</span>
+                <span>Notes</span>
+            </a>
+            <a href="/user-admin/parametres.html" class="nav-item">
+                <span class="nav-icon material-icons">settings</span>
+                <span>Paramètres</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info" id="userInfo">
+                <div class="user-avatar" id="userAvatar">AD</div>
+                <div class="user-details">
+                    <div class="user-name" id="userNameDisplay">Administrateur</div>
+                    <div class="user-role" id="userRole">admin</div>
+                </div>
+            </div>
+            <a href="index.html" class="logout-btn" id="logoutBtn">
+                <span class="material-icons">logout</span>
+                <span>Déconnexion</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Bouton toggle mobile -->
+    <button class="mobile-toggle" id="mobileToggle">
+        <span class="material-icons">menu</span>
+    </button>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content" id="mainContent">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">Tableau de bord</h1>
+            <div class="current-date" id="currentDate"></div>
+        </div>
+
+        <!-- Contenu dynamique -->
+        <div id="dashboardContent" style="display: none;">
+            <div class="stats-cards">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Classes actives</div>
+                        <div class="stat-icon classes">
+                            <span class="material-icons">school</span>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="statClasses">0</div>
+                    <div class="stat-change neutral" id="statClassesChange"><span>Total classes</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Professeurs actifs</div>
+                        <div class="stat-icon teachers">
+                            <span class="material-icons">people</span>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="statTeachers">0</div>
+                    <div class="stat-change neutral" id="statTeachersChange"><span>Total enseignants</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Élèves actifs</div>
+                        <div class="stat-icon students">
+                            <span class="material-icons">groups</span>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="statStudents">0</div>
+                    <div class="stat-change neutral" id="statStudentsChange"><span>Total élèves</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Performance globale</div>
+                        <div class="stat-icon performance">
+                            <span class="material-icons">trending_up</span>
+                        </div>
+                    </div>
+                    <div class="stat-value" id="statPerformance">0%</div>
+                    <div class="stat-change neutral" id="statPerformanceChange"><span>Moyenne générale</span></div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div>
+                    <div class="section">
+                        <div class="section-title">
+                            À surveiller
+                            <a href="rapport.html" class="view-link">Voir le rapport complet<span class="material-icons">chevron_right</span></a>
+                        </div>
+                        <div class="alerts-list" id="alertsList"></div>
+                    </div>
+                    <div class="section">
+                        <div class="section-title">
+                            Professeurs
+                            <a href="professeurs.html" class="view-link">Gérer les professeurs<span class="material-icons">chevron_right</span></a>
+                        </div>
+                        <div id="teachersContainer"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="section">
+                        <div class="section-title">Élèves - Aperçu global</div>
+                        <div class="students-metrics">
+                            <div class="metric"><div class="metric-value" id="totalStudents">0</div><div class="metric-label">Élèves inscrits</div></div>
+                            <div class="metric"><div class="metric-value" id="gradedStudents">0</div><div class="metric-label">Notes saisies</div></div>
+                            <div class="metric"><div class="metric-value" id="avgPerformance">0%</div><div class="metric-label">Moyenne générale</div></div>
+                        </div>
+                        <div id="studentsEmptyMessage" class="data-status hidden">
+                            <div class="data-status-icon"><span class="material-icons">group</span></div>
+                            <div class="data-status-title">Aucun élève importé</div>
+                            <div class="data-status-text">Importez la liste des élèves pour générer des statistiques</div>
+                        </div>
+                    </div>
+                    <div class="section">
+                        <div class="section-title">Actions rapides</div>
+                        <div class="quick-actions-grid">
+                            <a href="classes.html" class="action-btn"><div class="action-icon material-icons">add</div><div class="action-label">Configurer les classes</div></a>
+                            <a href="professeurs.html" class="action-btn"><div class="action-icon material-icons">person_add</div><div class="action-label">Ajouter un professeur</div></a>
+                            <a href="eleves.html" class="action-btn"><div class="action-icon material-icons">upload</div><div class="action-label">Importer des élèves</div></a>
+                            <a href="notes.html" class="action-btn"><div class="action-icon material-icons">edit_note</div><div class="action-label">Saisir des notes</div></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state hidden">
+            <div class="empty-icon"><span class="material-icons">analytics</span></div>
+            <h2 class="empty-title">Bienvenue sur Educsen</h2>
+            <p class="empty-text">Commencez par configurer votre établissement scolaire. Ajoutez des classes, professeurs et élèves, puis saisissez des notes pour visualiser les performances.</p>
+            <div class="empty-actions">
+                <a href="classes.html" class="action-btn"><div class="action-icon material-icons">add</div><div class="action-label">Configurer les classes</div></a>
+                <a href="professeurs.html" class="action-btn"><div class="action-icon material-icons">person_add</div><div class="action-label">Ajouter des professeurs</div></a>
+                <a href="eleves.html" class="action-btn"><div class="action-icon material-icons">group_add</div><div class="action-label">Importer les élèves</div></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Import Map -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js",
+                "firebase/firestore": "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"
+            }
+        }
+    </script>
+
+    <script type="module">
+        // ---------- IMPORTS FIREBASE ----------
+        import { initializeApp } from 'firebase/app';
+        import { getFirestore, collection, getDocs } from 'firebase/firestore';
+
+        // ---------- CONFIGURATION FIREBASE ----------
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7B-0O9mOdbIDQV-g6hsZx07G2ZvzKoxo",
+            authDomain: "real-educsen.firebaseapp.com",
+            projectId: "real-educsen",
+            storageBucket: "real-educsen.firebasestorage.app",
+            messagingSenderId: "80660233362",
+            appId: "1:80660233362:web:5edf5060254170056eba4b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // ---------- ÉLÉMENTS DOM ----------
+        const loaderSection = document.getElementById('loaderSection');
+        const dashboardContent = document.getElementById('dashboardContent');
+        const emptyState = document.getElementById('emptyState');
+
+        const statClasses = document.getElementById('statClasses');
+        const statTeachers = document.getElementById('statTeachers');
+        const statStudents = document.getElementById('statStudents');
+        const statPerformance = document.getElementById('statPerformance');
+        const teachersContainer = document.getElementById('teachersContainer');
+        const totalStudentsEl = document.getElementById('totalStudents');
+        const gradedStudentsEl = document.getElementById('gradedStudents');
+        const avgPerformanceEl = document.getElementById('avgPerformance');
+        const studentsEmptyMessage = document.getElementById('studentsEmptyMessage');
+        const alertsList = document.getElementById('alertsList');
+        const currentDateEl = document.getElementById('currentDate');
+
+        // ---------- PROMESSE DE FIN D'ANIMATION ----------
+        // Durée totale de l'animation : drawLines 2.5s + revealText commence à 2s et dure 1.2s (finit à 3.2s)
+        // glowIcon commence à 2.5s et dure 2s (finit à 4.5s)
+        // On attend 4.5 secondes pour être sûr que tout est terminé.
+        const animationComplete = new Promise(resolve => {
+            setTimeout(resolve, 4500); // 4.5 secondes
+        });
+
+        // ---------- FONCTION POUR CACHER LE LOADER ----------
+        function hideLoader() {
+            loaderSection.classList.add('hidden');
+        }
+
+        // ---------- MISE À JOUR DATE ----------
+        function updateDate() {
+            const now = new Date();
+            const options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+            const dateString = now.toLocaleDateString('fr-FR', options);
+            currentDateEl.textContent = dateString.charAt(0).toUpperCase() + dateString.slice(1);
+        }
+
+        // ---------- CHARGEMENT DES DONNÉES ----------
+        async function loadDashboardData() {
+            try {
+                const classesSnapshot = await getDocs(collection(db, 'classes'));
+                const classes = classesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const totalClasses = classes.length;
+
+                const professeursSnapshot = await getDocs(collection(db, 'professeurs'));
+                const professeurs = professeursSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const totalProfesseurs = professeurs.length;
+
+                let totalStudents = 0;
+                let totalPerformanceSum = 0;
+                let totalPerformanceCount = 0;
+                let studentsWithGrade = 0;
+
+                const studentPromises = classes.map(async (cl) => {
+                    const elevesSnap = await getDocs(collection(db, 'classes', cl.id, 'eleves'));
+                    const eleves = elevesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    totalStudents += eleves.length;
+                    eleves.forEach(eleve => {
+                        if (eleve.performance !== undefined && eleve.performance !== null) {
+                            const perf = parseFloat(eleve.performance);
+                            if (!isNaN(perf)) {
+                                totalPerformanceSum += perf;
+                                totalPerformanceCount++;
+                                studentsWithGrade++;
+                            }
+                        }
+                    });
+                });
+
+                await Promise.all(studentPromises);
+
+                const avgPerformance = totalPerformanceCount > 0 ? (totalPerformanceSum / totalPerformanceCount).toFixed(1) : 0;
+
+                statClasses.textContent = totalClasses;
+                statTeachers.textContent = totalProfesseurs;
+                statStudents.textContent = totalStudents;
+                statPerformance.textContent = avgPerformance + '%';
+                totalStudentsEl.textContent = totalStudents;
+                gradedStudentsEl.textContent = studentsWithGrade;
+                avgPerformanceEl.textContent = avgPerformance + '%';
+
+                if (totalStudents === 0) {
+                    studentsEmptyMessage.classList.remove('hidden');
+                } else {
+                    studentsEmptyMessage.classList.add('hidden');
+                }
+
+                generateAlerts(classes, professeurs, totalStudents, studentsWithGrade, avgPerformance);
+
+                // Affichage professeurs
+                if (professeurs.length > 0) {
+                    let teachersHtml = '<div class="teachers-list">';
+                    professeurs.slice(0, 3).forEach(prof => {
+                        const fullName = (prof.prenom || '') + ' ' + (prof.nom || '');
+                        const initiales = (prof.prenom?.[0] || '') + (prof.nom?.[0] || '');
+                        teachersHtml += `
+                            <div class="teacher-item">
+                                <div class="teacher-avatar">${initiales || 'P'}</div>
+                                <div class="teacher-info">
+                                    <div class="teacher-name">${fullName || 'Professeur'}</div>
+                                    <div class="teacher-subject">${prof.matiere || 'Matière non renseignée'}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    if (professeurs.length > 3) {
+                        teachersHtml += `<div style="text-align: center; margin-top: 10px;"><a href="professeurs.html" class="view-link">Voir tous les professeurs (${professeurs.length})</a></div>`;
+                    }
+                    teachersHtml += '</div>';
+                    teachersContainer.innerHTML = teachersHtml;
+                } else {
+                    teachersContainer.innerHTML = `
+                        <div class="data-status">
+                            <div class="data-status-icon"><span class="material-icons">person</span></div>
+                            <div class="data-status-title">Aucun professeur enregistré</div>
+                            <div class="data-status-text">Ajoutez vos professeurs pour commencer l'analyse des performances</div>
+                            <a href="professeurs.html" class="action-btn" style="display: inline-flex; padding: 10px 20px;">
+                                <div class="action-icon material-icons">person_add</div>
+                                <div class="action-label">Ajouter un professeur</div>
+                            </a>
+                        </div>
+                    `;
+                }
+
+                if (totalClasses === 0 && totalProfesseurs === 0 && totalStudents === 0) {
+                    emptyState.classList.remove('hidden');
+                    dashboardContent.style.display = 'none';
+                } else {
+                    emptyState.classList.add('hidden');
+                    dashboardContent.style.display = 'block';
+                }
+
+            } catch (error) {
+                console.error('Erreur:', error);
+                alertsList.innerHTML = `
+                    <div class="alert-item warning">
+                        <div class="alert-icon"><span class="material-icons">error</span></div>
+                        <div class="alert-content">
+                            <h4>Erreur de chargement</h4>
+                            <p>Impossible de contacter Firebase. Vérifiez votre connexion.</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function generateAlerts(classes, professeurs, totalStudents, studentsWithGrade, avgPerf) {
+            const alerts = [];
+
+            if (classes.length > 0 && professeurs.length === 0) {
+                alerts.push({ type: 'warning', icon: 'warning', title: 'Aucun professeur assigné', message: 'Des classes existent mais aucun professeur n\'est enregistré.' });
+            }
+
+            if (totalStudents > 0 && studentsWithGrade < totalStudents) {
+                alerts.push({ type: 'info', icon: 'info', title: 'Notes manquantes', message: `${totalStudents - studentsWithGrade} élève(s) n'ont pas encore de notes saisies.` });
+            }
+
+            const perf = parseFloat(avgPerf);
+            if (perf < 50 && totalStudents > 0) {
+                alerts.push({ type: 'warning', icon: 'trending_down', title: 'Performance en baisse', message: 'La moyenne générale est inférieure à 50%. Pensez à analyser les résultats.' });
+            }
+
+            if (alerts.length === 0 && totalStudents > 0) {
+                alerts.push({ type: 'good', icon: 'check_circle', title: 'Tout est en ordre', message: 'Aucune alerte particulière. Continuez à suivre les performances.' });
+            }
+
+            let html = '';
+            alerts.forEach(alert => {
+                html += `<div class="alert-item ${alert.type}"><div class="alert-icon"><span class="material-icons">${alert.icon}</span></div><div class="alert-content"><h4>${alert.title}</h4><p>${alert.message}</p></div></div>`;
+            });
+            alertsList.innerHTML = html;
+        }
+
+        // ---------- SIDEBAR TOGGLE ----------
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleSidebar');
+        const mobileToggle = document.getElementById('mobileToggle');
+        const toggleIcon = document.getElementById('toggleIcon');
+
+        if (toggleBtn && sidebar) {
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+                toggleIcon.textContent = sidebar.classList.contains('collapsed') ? 'chevron_right' : 'chevron_left';
+            });
+        }
+
+        if (mobileToggle && sidebar) {
+            mobileToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('mobile-open');
+                if (window.innerWidth <= 768 && sidebar.classList.contains('collapsed')) {
+                    sidebar.classList.remove('collapsed');
+                    toggleIcon.textContent = 'chevron_left';
+                }
+            });
+        }
+
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768) {
+                if (!sidebar.contains(e.target) && !mobileToggle.contains(e.target)) {
+                    sidebar.classList.remove('mobile-open');
+                }
+            }
+        });
+
+        function handleResize() {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('collapsed');
+                toggleIcon.textContent = 'chevron_left';
+            } else {
+                sidebar.classList.remove('mobile-open');
+            }
+        }
+        window.addEventListener('resize', handleResize);
+        handleResize();
+
+        // ---------- INIT : on attend l'animation ET les données ----------
+        document.addEventListener('DOMContentLoaded', async () => {
+            updateDate();
+            // Lancer le chargement des données
+            const dataPromise = loadDashboardData();
+            // Attendre que l'animation soit terminée ET que les données soient chargées
+            await Promise.all([animationComplete, dataPromise]);
+            // Ensuite seulement, cacher le loader
+            hideLoader();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1974 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saisie des notes | Educsen</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        /* ... styles inchangés ... */
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --secondary: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --gray: #64748b;
+            --gray-light: #e2e8f0;
+            --sidebar: #1e293b;
+            --success-light: #dcfce7;
+            --success-dark: #16a34a;
+            --info-light: #dbeafe;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f1f5f9;
+            color: var(--dark);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ========== NOUVELLE SIDEBAR (AVEC TOGGLE INTÉGRÉ) ========== */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar-header {
+            padding: 20px 16px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .logo-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .logo-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: opacity 0.2s;
+        }
+
+        .sidebar.collapsed .logo-text {
+            opacity: 0;
+            width: 0;
+        }
+
+        /* Bouton toggle intégré */
+        .toggle-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #4b5563;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 24px;
+            margin: 0 12px;
+            border-radius: 12px;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-item .nav-icon {
+            font-size: 1.5rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-item span:last-child {
+            transition: opacity 0.2s;
+        }
+
+        .sidebar.collapsed .nav-item span:last-child {
+            opacity: 0;
+            width: 0;
+            display: none;
+        }
+
+        .nav-item.active {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 8px 16px -4px rgba(59,130,246,0.3);
+        }
+
+        .nav-item:hover:not(.active) {
+            background: #334155;
+            color: white;
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid #334155;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            white-space: nowrap;
+            margin-bottom: 12px;
+        }
+
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            background: #3b82f6;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .user-details {
+            overflow: hidden;
+        }
+
+        .user-name {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-transform: capitalize;
+        }
+
+        .sidebar.collapsed .user-details {
+            opacity: 0;
+            width: 0;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        /* ========== MAIN CONTENT ========== */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+            transition: margin-left 0.3s ease;
+            min-height: 100vh;
+        }
+
+        .sidebar.collapsed ~ .main-content {
+            margin-left: 80px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .header-left h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .school-year {
+            display: inline-block;
+            background-color: var(--gray-light);
+            color: var(--gray);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.2s;
+            font-size: 14px;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .steps-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .steps-header {
+            display: flex;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .step {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--gray-light);
+            color: var(--gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .step.active .step-number {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .step.completed .step-number {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .step-label {
+            font-weight: 600;
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .step.active .step-label {
+            color: var(--primary);
+        }
+
+        .step.completed .step-label {
+            color: var(--secondary);
+        }
+
+        .step-content {
+            display: none;
+            padding: 40px;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        .form-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-group.required label::after {
+            content: ' *';
+            color: var(--danger);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--gray-light);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .evaluation-types {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .evaluation-type {
+            border: 2px solid var(--gray-light);
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .evaluation-type:hover {
+            border-color: var(--primary);
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+
+        .evaluation-type.selected {
+            border-color: var(--primary);
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        .evaluation-type .type-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .evaluation-type .type-label {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .mode-buttons {
+            display: flex;
+            gap: 20px;
+            margin: 30px 0;
+            justify-content: center;
+        }
+
+        .mode-btn {
+            flex: 1;
+            max-width: 250px;
+            padding: 20px;
+            border: 2px solid var(--gray-light);
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .mode-btn:hover {
+            border-color: var(--primary);
+            background: #f0f7ff;
+        }
+
+        .mode-btn.selected {
+            border-color: var(--primary);
+            background: #e6f0ff;
+        }
+
+        .mode-icon {
+            font-size: 36px;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .csv-import-area {
+            margin-top: 20px;
+            padding: 20px;
+            border: 2px dashed var(--gray-light);
+            border-radius: 8px;
+            text-align: center;
+            background-color: #f9f9f9;
+        }
+
+        .csv-import-area input[type="file"] {
+            max-width: 300px;
+            margin: 0 auto 10px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        thead {
+            background-color: #f8f9fa;
+        }
+
+        th {
+            padding: 16px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark);
+            border-bottom: 1px solid var(--gray-light);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--gray-light);
+            vertical-align: middle;
+        }
+
+        .note-input {
+            width: 100px;
+            padding: 8px 12px;
+            border: 1px solid var(--gray-light);
+            border-radius: 6px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .note-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .note-input.invalid {
+            border-color: var(--danger);
+            background-color: rgba(239, 68, 68, 0.05);
+        }
+
+        .info-message {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--info-light);
+            border-radius: 6px;
+            color: var(--gray);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .validation-container {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .validation-icon {
+            width: 80px;
+            height: 80px;
+            background-color: var(--warning);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 36px;
+        }
+
+        .validation-message {
+            font-size: 16px;
+            color: var(--dark);
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .validation-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--gray);
+            border: 1px solid var(--gray-light);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--gray-light);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 14px;
+        }
+
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+
+        .btn-success {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 14px;
+        }
+
+        .btn-success:hover {
+            background-color: #0da271;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal {
+            background-color: white;
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .modal-icon {
+            width: 60px;
+            height: 60px;
+            background-color: var(--secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            color: white;
+            font-size: 28px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+
+        .modal-subtitle {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .modal-content {
+            margin-bottom: 30px;
+        }
+
+        .confirmation-details {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .detail-value {
+            color: var(--gray);
+        }
+
+        .warning-message {
+            padding: 15px;
+            background-color: rgba(245, 158, 11, 0.1);
+            border-radius: 6px;
+            color: var(--warning);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+        }
+
+        .success-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            display: none;
+            z-index: 1001;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background-color: var(--success-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: var(--success-dark);
+            font-size: 40px;
+        }
+
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px;
+            z-index: 1001;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+                position: fixed;
+                z-index: 1000;
+            }
+            
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .sidebar.collapsed {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.collapsed.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+                padding: 20px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .steps-header {
+                flex-direction: column;
+            }
+
+            .step {
+                padding: 15px 10px;
+            }
+
+            .step-content {
+                padding: 20px;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .evaluation-types {
+                grid-template-columns: 1fr;
+            }
+
+            .validation-actions,
+            .modal-actions {
+                flex-direction: column;
+            }
+            
+            .mobile-toggle {
+                display: flex !important;
+            }
+            
+            #toggleSidebar {
+                display: flex !important;
+            }
+        }
+
+        .step.disabled .step-number {
+            background-color: #f1f5f9;
+            color: #cbd5e1;
+        }
+
+        .step.disabled .step-label {
+            color: #cbd5e1;
+        }
+    </style>
+    <!-- PapaParse pour l'import CSV -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <!-- Alias pour utiliser PapaParse au lieu de Papa -->
+    <script>window.PapaParse = window.Papa;</script>
+</head>
+<body>
+    <!-- NOUVELLE SIDEBAR AVEC TOGGLE INTÉGRÉ -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-header">
+                <div class="logo-area">
+                    <div class="logo-icon">E</div>
+                    <span class="logo-text">Educ<span style="color:#3b82f6;">sen</span></span>
+                </div>
+                <button class="toggle-btn" id="toggleSidebar">
+                    <span class="material-icons" id="toggleIcon">chevron_left</span>
+                </button>
+            </div>
+        </div>
+
+        <nav class="nav-menu">
+            <a href="/userdashboard.html" class="nav-item active">
+                <span class="nav-icon material-icons">dashboard</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="/user-admin/assistant.html" class="nav-item">
+                <span class="nav-icon material-icons">assessment</span>
+                <span>Assistant</span>
+            </a>
+            <a href="/user-admin/rapport.html" class="nav-item">
+                <span class="nav-icon material-icons">assessment</span>
+                <span>Rapport</span>
+            </a>
+            <a href="/user-admin/classes.html" class="nav-item">
+                <span class="nav-icon material-icons">school</span>
+                <span>Classes</span>
+            </a>
+            <a href="/user-admin/professeurs.html" class="nav-item">
+                <span class="nav-icon material-icons">person</span>
+                <span>Professeurs</span>
+            </a>
+            <a href="/user-admin/eleves.html" class="nav-item">
+                <span class="nav-icon material-icons">groups</span>
+                <span>Élèves</span>
+            </a>
+            <a href="/user-admin/notes.html" class="nav-item">
+                <span class="nav-icon material-icons">assignment</span>
+                <span>Notes</span>
+            </a>
+            <a href="/user-admin/parametres.html" class="nav-item">
+                <span class="nav-icon material-icons">settings</span>
+                <span>Paramètres</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info" id="userInfo">
+                <div class="user-avatar" id="userAvatar">AD</div>
+                <div class="user-details">
+                    <div class="user-name" id="userNameDisplay">Administrateur</div>
+                    <div class="user-role" id="userRole">admin</div>
+                </div>
+            </div>
+            <button class="logout-btn" id="logoutBtn">
+                <span class="nav-icon material-icons">logout</span>
+                <span>Déconnexion</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Bouton toggle pour mobile -->
+    <button class="mobile-toggle" id="mobileToggle">
+        <span class="material-icons">menu</span>
+    </button>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="header-left">
+                <h1>Saisie des notes <span class="school-year" id="schoolYear"></span></h1>
+                <div style="color: var(--gray); font-size: 14px; margin-top: 5px;">
+                    Le moteur du système - Accessible par admin uniquement
+                </div>
+            </div>
+            <button class="btn-primary" id="newEntryBtn">
+                <span class="material-icons">add</span>
+                Nouvelle saisie
+            </button>
+        </div>
+
+        <!-- Steps Container -->
+        <div class="steps-container">
+            <div class="steps-header">
+                <div class="step active" id="step1">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Sélection du contexte</div>
+                </div>
+                <div class="step disabled" id="step2">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Saisie des notes</div>
+                </div>
+                <div class="step disabled" id="step3">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Validation</div>
+                </div>
+            </div>
+
+            <!-- Étape 1: Sélection du contexte -->
+            <div class="step-content active" id="step1-content">
+                <div class="form-container">
+                    <h2 style="margin-bottom: 25px; color: var(--dark);">Configuration de la saisie</h2>
+                    
+                    <div class="form-group required">
+                        <label for="classSelect">Classe</label>
+                        <select id="classSelect" class="form-control">
+                            <option value="">Sélectionnez une classe</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group required">
+                        <label for="subjectSelect">Matière</label>
+                        <select id="subjectSelect" class="form-control" disabled>
+                            <option value="">Sélectionnez d'abord une classe</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Professeur</label>
+                        <input type="text" id="teacherInput" class="form-control" readonly style="background-color: #f8f9fa;">
+                        <div style="font-size: 12px; color: var(--gray); margin-top: 5px;">
+                            Auto-sélectionné selon la classe et la matière
+                        </div>
+                    </div>
+
+                    <div class="form-group required">
+                        <label>Type d'évaluation</label>
+                        <div class="evaluation-types">
+                            <div class="evaluation-type" data-type="Devoir">
+                                <div class="type-icon material-icons">assignment</div>
+                                <div class="type-label">Devoir</div>
+                            </div>
+                            <div class="evaluation-type" data-type="Examen">
+                                <div class="type-icon material-icons">quiz</div>
+                                <div class="type-label">Examen</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group required">
+                        <label for="dateInput">Date</label>
+                        <input type="date" id="dateInput" class="form-control">
+                    </div>
+
+                    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--gray-light);">
+                        <button class="btn-primary" id="nextToStep2" style="width: 100%;" disabled>
+                            Passer à la saisie des notes
+                            <span class="material-icons">arrow_forward</span>
+                        </button>
+                        <div style="font-size: 12px; color: var(--gray); text-align: center; margin-top: 10px;">
+                            Tous les champs doivent être remplis pour continuer
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Étape 2: Saisie des notes -->
+            <div class="step-content" id="step2-content">
+                <div class="form-container">
+                    <h2 style="margin-bottom: 25px; color: var(--dark);" id="step2Title">Saisie manuelle des notes</h2>
+                    
+                    <div style="margin-bottom: 20px; padding: 15px; background-color: var(--info-light); border-radius: 6px;">
+                        <div style="display: flex; align-items: center; gap: 10px; color: var(--gray);">
+                            <span class="material-icons" style="color: var(--primary);">info</span>
+                            <div>
+                                <strong>Informations :</strong> 
+                                <span id="contextInfo">Classe: -- | Matière: -- | Type: --</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Zone d'import CSV -->
+                    <div class="csv-import-area">
+                        <span class="material-icons" style="font-size: 36px; color: var(--primary);">cloud_upload</span>
+                        <h3>Importer des notes depuis un CSV</h3>
+                        <p style="color: var(--gray); margin-bottom: 15px;">
+                            Le fichier CSV doit contenir les colonnes : <strong>nom, prénom, note</strong> (séparées par des virgules).<br>
+                            La première ligne (en-tête) est ignorée.
+                        </p>
+                        <input type="file" id="csvFileInput" accept=".csv" style="display: none;">
+                        <button class="btn-primary" id="importCsvBtn" style="margin-top: 5px;">
+                            <span class="material-icons">upload_file</span> Choisir un fichier CSV
+                        </button>
+                    </div>
+
+                    <!-- Zone de saisie manuelle -->
+                    <div id="manualEntryArea">
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Élève</th>
+                                        <th>Note /20</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentsNotesTable">
+                                    <!-- Rempli dynamiquement -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Affichage de la moyenne de la classe -->
+                        <div style="margin-top: 20px; padding: 15px; background-color: var(--success-light); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="font-weight: 600; color: var(--success-dark);">Moyenne de la classe</div>
+                                <div style="font-size: 12px; color: var(--gray);">Calculée en temps réel</div>
+                            </div>
+                            <div id="classAverageContainer" style="display: flex; align-items: baseline; gap: 10px;">
+                                <div id="classAverage" style="font-size: 24px; font-weight: 700; color: var(--success-dark);">--</div>
+                                <div style="font-size: 14px; color: var(--gray);">/20</div>
+                            </div>
+                        </div>
+
+                        <div class="info-message" id="notesInfoMessage">
+                            <span class="material-icons" style="color: var(--warning);">info</span>
+                            <div>
+                                <strong>Statut :</strong> 0/0 élèves notés.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--gray-light); display: flex; justify-content: space-between;">
+                        <button class="btn-secondary" id="backToStep1">
+                            <span class="material-icons">arrow_back</span>
+                            Retour
+                        </button>
+                        <button class="btn-primary" id="nextToStep3" disabled>
+                            Valider les notes
+                            <span class="material-icons">arrow_forward</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Étape 3: Validation -->
+            <div class="step-content" id="step3-content">
+                <div class="validation-container">
+                    <div class="validation-icon">
+                        <span class="material-icons">check</span>
+                    </div>
+                    
+                    <h2 style="margin-bottom: 20px; color: var(--dark);">Validation finale</h2>
+                    
+                    <div class="validation-message">
+                        Vous êtes sur le point de valider définitivement les notes saisies.
+                        <br><br>
+                        <strong>⚠️ Important :</strong> Après validation, les notes ne sont plus modifiables par défaut.
+                    </div>
+
+                    <div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="font-weight: 600; color: var(--dark);">Nombre de notes saisies :</span>
+                            <span id="notesCount">0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="font-weight: 600; color: var(--dark);">Notes valides :</span>
+                            <span id="validNotesCount">0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="font-weight: 600; color: var(--dark);">Absences :</span>
+                            <span id="absentCount">0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding-top: 10px; border-top: 1px solid var(--gray-light);">
+                            <span style="font-weight: 600; color: var(--dark);">Moyenne de la classe :</span>
+                            <span id="validationAverage" style="font-weight: 700; color: var(--success-dark);">--</span>
+                        </div>
+                    </div>
+
+                    <div class="validation-actions">
+                        <button class="btn-secondary" id="backToStep2">
+                            <span class="material-icons">arrow_back</span>
+                            Retour à la saisie
+                        </button>
+                        <button class="btn-danger" id="cancelEntry">
+                            <span class="material-icons">close</span>
+                            Annuler tout
+                        </button>
+                        <button class="btn-success" id="confirmValidation">
+                            <span class="material-icons">check_circle</span>
+                            Confirmer la validation
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmation finale -->
+    <div class="modal-overlay" id="finalConfirmationModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-icon">
+                    <span class="material-icons">lock</span>
+                </div>
+                <h2 class="modal-title">Confirmation définitive</h2>
+                <p class="modal-subtitle">Cette action est irréversible</p>
+            </div>
+            
+            <div class="modal-content">
+                <div class="confirmation-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Classe :</span>
+                        <span class="detail-value" id="modalClass">--</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Matière :</span>
+                        <span class="detail-value" id="modalSubject">--</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Type d'évaluation :</span>
+                        <span class="detail-value" id="modalType">--</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Date :</span>
+                        <span class="detail-value" id="modalDate">--</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Nombre de notes :</span>
+                        <span class="detail-value" id="modalNotesCount">0</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Moyenne de la classe :</span>
+                        <span class="detail-value" id="modalAverage">--</span>
+                    </div>
+                </div>
+
+                <div class="warning-message">
+                    <span class="material-icons">warning</span>
+                    <div>
+                        <strong>Attention :</strong> Après confirmation, les notes seront enregistrées définitivement.
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-secondary" id="modalCancel">
+                    Retour
+                </button>
+                <button class="btn-success" id="modalConfirm">
+                    Confirmer définitivement
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message de succès -->
+    <div class="success-message" id="successMessage">
+        <div class="success-icon">
+            <span class="material-icons">check</span>
+        </div>
+        <h2 style="margin-bottom: 10px; color: var(--dark);">Saisie terminée !</h2>
+        <p style="color: var(--gray); margin-bottom: 30px;">
+            Les notes ont été enregistrées avec succès.
+            <br><br>
+            <strong>Calculs en cours :</strong>
+            <br>
+            ✓ Performance des élèves<br>
+            ✓ Mise à jour des rapports
+        </p>
+        <button class="btn-primary" id="newSaisieBtn" style="width: 100%;">
+            <span class="material-icons">add</span>
+            Nouvelle saisie
+        </button>
+    </div>
+
+    <!-- Import Firebase v9 modular -->
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+    import { getFirestore, collection, query, where, getDocs, doc, getDoc, addDoc, serverTimestamp, writeBatch } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyD7B-0O9mOdbIDQV-g6hsZx07G2ZvzKoxo",
+        authDomain: "real-educsen.firebaseapp.com",
+        projectId: "real-educsen",
+        storageBucket: "real-educsen.firebasestorage.app",
+        messagingSenderId: "80660233362",
+        appId: "1:80660233362:web:5edf5060254170056eba4b"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // ---------- État central ----------
+    const state = {
+        currentUser: null,
+        currentStep: 1,
+        selectedClassId: null,
+        selectedClassName: '',
+        selectedSubject: null,
+        selectedTeacherId: null,
+        selectedTeacherName: '',
+        evaluationType: null,
+        evaluationDate: null,
+        studentsList: [],      // élèves de la classe sélectionnée seulement
+        notesData: [],         // données des notes pour la validation
+        currentClassMatieres: [],
+        csvErrors: []          // pour collecter les erreurs CSV
+    };
+
+    // ---------- Éléments DOM ----------
+    const classSelect = document.getElementById('classSelect');
+    const subjectSelect = document.getElementById('subjectSelect');
+    const teacherInput = document.getElementById('teacherInput');
+    const dateInput = document.getElementById('dateInput');
+    const nextToStep2Btn = document.getElementById('nextToStep2');
+    const step1Content = document.getElementById('step1-content');
+    const step2Content = document.getElementById('step2-content');
+    const step3Content = document.getElementById('step3-content');
+    const step1Header = document.getElementById('step1');
+    const step2Header = document.getElementById('step2');
+    const step3Header = document.getElementById('step3');
+    const backToStep1Btn = document.getElementById('backToStep1');
+    const backToStep2Btn = document.getElementById('backToStep2');
+    const nextToStep3Btn = document.getElementById('nextToStep3');
+    const confirmValidationBtn = document.getElementById('confirmValidation');
+    const cancelEntryBtn = document.getElementById('cancelEntry');
+    const newEntryBtn = document.getElementById('newEntryBtn');
+    const newSaisieBtn = document.getElementById('newSaisieBtn');
+    const modalConfirm = document.getElementById('modalConfirm');
+    const modalCancel = document.getElementById('modalCancel');
+    const finalConfirmationModal = document.getElementById('finalConfirmationModal');
+    const successMessage = document.getElementById('successMessage');
+    const contextInfo = document.getElementById('contextInfo');
+    const step2Title = document.getElementById('step2Title');
+    const studentsTableBody = document.getElementById('studentsNotesTable');
+    const classAverageEl = document.getElementById('classAverage');
+    const notesInfoMessage = document.getElementById('notesInfoMessage');
+    const notesCountEl = document.getElementById('notesCount');
+    const validNotesCountEl = document.getElementById('validNotesCount');
+    const absentCountEl = document.getElementById('absentCount');
+    const validationAverageEl = document.getElementById('validationAverage');
+    const modalClass = document.getElementById('modalClass');
+    const modalSubject = document.getElementById('modalSubject');
+    const modalType = document.getElementById('modalType');
+    const modalDate = document.getElementById('modalDate');
+    const modalNotesCount = document.getElementById('modalNotesCount');
+    const modalAverage = document.getElementById('modalAverage');
+    const manualEntryArea = document.getElementById('manualEntryArea');
+    const userNameDisplay = document.getElementById('userNameDisplay');
+    const userAvatar = document.getElementById('userAvatar');
+    const csvFileInput = document.getElementById('csvFileInput');
+    const importCsvBtn = document.getElementById('importCsvBtn');
+
+    // ---------- Utilitaires ----------
+    function normalizeString(str) {
+        if (!str) return '';
+        return str
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLowerCase()
+            .trim()
+            .replace(/\s+/g, ' ');
+    }
+
+    // ---------- Initialisation ----------
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.href = 'connexion.html';
+            return;
+        }
+        state.currentUser = user;
+        userNameDisplay.textContent = user.email || 'Administrateur';
+        userAvatar.textContent = (user.email?.[0] || 'AD').toUpperCase();
+
+        await loadClasses();
+
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+        state.evaluationDate = today;
+
+        initEventListeners();
+
+        const year = new Date().getFullYear();
+        document.getElementById('schoolYear').textContent = `${year}-${year+1}`;
+    });
+
+    // ---------- Charger les classes de l'utilisateur ----------
+    async function loadClasses() {
+        if (!state.currentUser) return;
+        try {
+            const q = query(collection(db, 'classes'), where('createdBy', '==', state.currentUser.uid));
+            const querySnapshot = await getDocs(q);
+            classSelect.innerHTML = '<option value="">Sélectionnez une classe</option>';
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const option = document.createElement('option');
+                option.value = doc.id;
+                option.textContent = data.nomClasse || 'Classe sans nom';
+                classSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Erreur chargement classes:', error);
+            alert('Erreur lors du chargement des classes');
+        }
+    }
+
+    // ---------- Charger les matières de la classe sélectionnée ----------
+    async function loadSubjects() {
+        const classId = classSelect.value;
+        if (!classId) {
+            subjectSelect.innerHTML = '<option value="">Sélectionnez d\'abord une classe</option>';
+            subjectSelect.disabled = true;
+            teacherInput.value = '';
+            state.selectedSubject = null;
+            state.selectedTeacherId = null;
+            state.selectedTeacherName = '';
+            state.currentClassMatieres = [];
+            return;
+        }
+
+        state.selectedClassId = classId;
+        try {
+            const classDoc = await getDoc(doc(db, 'classes', classId));
+            if (!classDoc.exists()) {
+                console.error('Document classe introuvable');
+                return;
+            }
+
+            const data = classDoc.data();
+            state.selectedClassName = data.nomClasse || 'Classe sans nom';
+            state.currentClassMatieres = data.matieres || [];
+
+            subjectSelect.innerHTML = '<option value="">Sélectionnez une matière</option>';
+            state.currentClassMatieres.forEach(matiere => {
+                const option = document.createElement('option');
+                option.value = matiere.nom;
+                option.textContent = matiere.nom;
+                subjectSelect.appendChild(option);
+            });
+            subjectSelect.disabled = false;
+
+            teacherInput.value = '';
+            state.selectedTeacherId = null;
+            state.selectedTeacherName = '';
+        } catch (error) {
+            console.error('Erreur chargement matières:', error);
+            alert('Impossible de charger les matières.');
+        }
+    }
+
+    // ---------- Mettre à jour le professeur en fonction de la matière choisie ----------
+    async function updateTeacher() {
+        if (!state.selectedClassId || !state.selectedSubject || state.currentClassMatieres.length === 0) {
+            teacherInput.value = '';
+            state.selectedTeacherId = null;
+            state.selectedTeacherName = '';
+            return;
+        }
+
+        try {
+            const selectedMatiere = state.currentClassMatieres.find(m => m.nom === state.selectedSubject);
+            if (selectedMatiere) {
+                state.selectedTeacherId = selectedMatiere.professeurId || null;
+                state.selectedTeacherName = selectedMatiere.professeurNom || '';
+                teacherInput.value = state.selectedTeacherName || 'Aucun professeur assigné';
+            } else {
+                teacherInput.value = 'Professeur non trouvé';
+                state.selectedTeacherId = null;
+                state.selectedTeacherName = '';
+            }
+        } catch (error) {
+            console.error('Erreur lors de la récupération du professeur:', error);
+            teacherInput.value = 'Erreur chargement';
+            state.selectedTeacherId = null;
+            state.selectedTeacherName = '';
+        }
+    }
+
+    // ---------- Charger les élèves de la classe sélectionnée ----------
+    async function loadStudents() {
+        if (!state.currentUser) {
+            alert('Vous devez être connecté pour charger les élèves.');
+            return;
+        }
+        if (!state.selectedClassId) {
+            alert('Veuillez d\'abord sélectionner une classe.');
+            return;
+        }
+
+        console.log('Chargement des élèves pour la classe:', state.selectedClassId);
+
+        try {
+            const elevesRef = collection(db, 'classes', state.selectedClassId, 'eleves');
+            const elevesSnapshot = await getDocs(elevesRef);
+
+            state.studentsList = [];
+
+            if (elevesSnapshot.empty) {
+                alert('Aucun élève trouvé dans cette classe.');
+                studentsTableBody.innerHTML = '<tr><td colspan="3" class="empty-message">Aucun élève dans cette classe</td></tr>';
+                return;
+            }
+
+            elevesSnapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                state.studentsList.push({
+                    id: docSnap.id,
+                    nom: data.nom || '',
+                    prenom: data.prenom || '',
+                    classeId: state.selectedClassId,
+                    classeNom: state.selectedClassName
+                });
+            });
+
+            // LOG : afficher les élèves chargés
+            console.log("Élèves chargés depuis Firestore:", state.studentsList.map(s => ({ id: s.id, nom: s.nom, prenom: s.prenom })));
+
+            renderStudentsTable();
+
+        } catch (error) {
+            console.error('Erreur chargement élèves:', error);
+            alert('Impossible de charger les élèves.');
+        }
+    }
+
+    // ---------- Afficher le tableau des élèves ----------
+    function renderStudentsTable() {
+        studentsTableBody.innerHTML = '';
+        if (state.studentsList.length === 0) {
+            studentsTableBody.innerHTML = '<tr><td colspan="3" class="empty-message">Aucun élève dans cette classe</td></tr>';
+            return;
+        }
+        state.studentsList.forEach(student => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${student.nom} ${student.prenom}</td>
+                <td>
+                    <input type="number" 
+                           class="note-input" 
+                           min="0" 
+                           max="20" 
+                           step="0.5" 
+                           data-student-id="${student.id}"
+                           placeholder="0-20">
+                </td>
+                <td class="note-status" data-student-id="${student.id}">
+                    <span style="color: var(--gray); font-size: 12px;">En attente</span>
+                </td>
+            `;
+            studentsTableBody.appendChild(row);
+        });
+
+        document.querySelectorAll('.note-input').forEach(input => {
+            input.addEventListener('input', validateNote);
+            input.addEventListener('blur', validateNote);
+        });
+        updateClassAverage();
+    }
+
+    // ---------- Validation d'une note ----------
+    function validateNote(e) {
+        const input = e.target;
+        const studentId = input.dataset.studentId;
+        const statusSpan = document.querySelector(`.note-status[data-student-id="${studentId}"] span`);
+        const value = input.value.trim();
+
+        input.classList.remove('invalid');
+
+        if (value === '') {
+            statusSpan.textContent = 'Absent';
+            statusSpan.style.color = 'var(--warning)';
+        } else {
+            const num = parseFloat(value);
+            if (isNaN(num) || num < 0 || num > 20) {
+                input.classList.add('invalid');
+                statusSpan.textContent = 'Invalide (0-20)';
+                statusSpan.style.color = 'var(--danger)';
+            } else {
+                statusSpan.textContent = 'Valide';
+                statusSpan.style.color = 'var(--success-dark)';
+            }
+        }
+        updateClassAverage();
+        checkStep2Completion();
+    }
+
+    // ---------- Mise à jour de la moyenne ----------
+    function updateClassAverage() {
+        const inputs = document.querySelectorAll('.note-input');
+        let total = 0, count = 0, validCount = 0;
+        inputs.forEach(input => {
+            const val = input.value.trim();
+            if (val !== '') {
+                const num = parseFloat(val);
+                if (!isNaN(num) && num >= 0 && num <= 20) {
+                    total += num;
+                    count++;
+                    validCount++;
+                }
+            }
+        });
+        if (count > 0) {
+            const avg = total / count;
+            classAverageEl.textContent = avg.toFixed(2);
+        } else {
+            classAverageEl.textContent = '--';
+        }
+
+        notesInfoMessage.innerHTML = `
+            <span class="material-icons" style="color: var(--warning);">info</span>
+            <div>
+                <strong>Statut :</strong> ${validCount}/${inputs.length} élèves notés.
+                ${count > 0 ? `Moyenne: ${(total/count).toFixed(2)}/20` : ''}
+            </div>
+        `;
+    }
+
+    // ---------- Vérifier si l'étape 2 peut être validée ----------
+    function checkStep2Completion() {
+        const inputs = document.querySelectorAll('.note-input');
+        let hasValid = false;
+        inputs.forEach(input => {
+            const val = input.value.trim();
+            if (val !== '') {
+                const num = parseFloat(val);
+                if (!isNaN(num) && num >= 0 && num <= 20) hasValid = true;
+            }
+        });
+        nextToStep3Btn.disabled = !hasValid;
+    }
+
+    // ---------- Collecter les notes depuis le tableau ----------
+    function collectNotes() {
+        const inputs = document.querySelectorAll('.note-input');
+        const notes = [];
+        let validCount = 0, absentCount = 0, total = 0, count = 0;
+        inputs.forEach(input => {
+            const studentId = input.dataset.studentId;
+            const student = state.studentsList.find(s => s.id === studentId);
+            const studentName = student ? `${student.nom} ${student.prenom}`.trim() : 'Inconnu';
+            const val = input.value.trim();
+            if (val === '') {
+                notes.push({ studentId, studentName, note: null, absent: true });
+                absentCount++;
+            } else {
+                const num = parseFloat(val);
+                if (!isNaN(num) && num >= 0 && num <= 20) {
+                    notes.push({ studentId, studentName, note: num, absent: false });
+                    validCount++;
+                    total += num;
+                    count++;
+                }
+            }
+        });
+        const average = count > 0 ? total / count : 0;
+        return { notes, validCount, absentCount, totalCount: inputs.length, average };
+    }
+
+    // ---------- Sauvegarder l'évaluation et les notes ----------
+    async function saveEvaluation() {
+        if (!state.currentUser || !state.selectedClassId || !state.selectedSubject || !state.evaluationType || !state.evaluationDate) {
+            alert('Données manquantes pour la sauvegarde');
+            return;
+        }
+
+        const result = collectNotes();
+        const notes = result.notes;
+        const validCount = result.validCount;
+        const average = result.average;
+
+        if (validCount === 0) {
+            alert('Aucune note valide à enregistrer');
+            return;
+        }
+
+        const evaluationData = {
+            titre: `${state.evaluationType} - ${state.selectedSubject} - ${new Date(state.evaluationDate).toLocaleDateString('fr')}`,
+            classeId: state.selectedClassId,
+            matiere: state.selectedSubject,
+            classeNom: state.selectedClassName,
+            type: state.evaluationType,
+            moyenneClasse: average.toString(),
+            date: new Date(state.evaluationDate),
+            createdBy: state.currentUser.uid,
+            createdAt: serverTimestamp()
+        };
+        if (state.selectedTeacherId) {
+            evaluationData.professeurId = state.selectedTeacherId;
+        }
+
+        try {
+            const evaluationRef = await addDoc(collection(db, 'evaluations'), evaluationData);
+
+            const batch = writeBatch(db);
+            notes.forEach(item => {
+                if (!item.absent && item.note !== null) {
+                    const noteRef = doc(collection(db, 'evaluations', evaluationRef.id, 'notes'));
+                    batch.set(noteRef, {
+                        eleveId: item.studentId,
+                        note: item.note,
+                        updatedAt: serverTimestamp()
+                    });
+                }
+            });
+            await batch.commit();
+
+            hideFinalConfirmation();
+            successMessage.style.display = 'block';
+            console.log('Évaluation enregistrée');
+        } catch (error) {
+            console.error('Erreur sauvegarde:', error);
+            alert('Erreur lors de l\'enregistrement');
+        }
+    }
+
+    // ---------- Navigation entre étapes ----------
+    function updateStepDisplay(step) {
+        state.currentStep = step;
+
+        [step1Header, step2Header, step3Header].forEach((h, idx) => {
+            h.classList.remove('active', 'completed', 'disabled');
+            if (idx+1 === step) h.classList.add('active');
+            else if (idx+1 < step) h.classList.add('completed');
+            else h.classList.add('disabled');
+        });
+
+        [step1Content, step2Content, step3Content].forEach((c, idx) => {
+            c.classList.remove('active');
+            if (idx+1 === step) c.classList.add('active');
+        });
+    }
+
+    function goToStep2() {
+        if (!state.selectedClassId || !state.selectedSubject || !state.evaluationType || !state.evaluationDate) {
+            alert('Veuillez remplir tous les champs (professeur optionnel)');
+            return;
+        }
+
+        contextInfo.textContent = `Classe: ${state.selectedClassName} | Matière: ${state.selectedSubject} | Type: ${state.evaluationType}`;
+        step2Title.textContent = `Saisie des notes - ${state.selectedClassName} - ${state.selectedSubject}`;
+
+        manualEntryArea.style.display = 'block';
+        nextToStep3Btn.disabled = true;
+        state.notesData = [];
+
+        updateStepDisplay(2);
+        // Charger les élèves de la classe
+        loadStudents();
+    }
+
+    function goToStep1() {
+        updateStepDisplay(1);
+    }
+
+    function goToStep3() {
+        const { notes, validCount, absentCount, totalCount, average } = collectNotes();
+        if (validCount === 0) {
+            alert('Veuillez saisir au moins une note valide.');
+            return;
+        }
+        state.notesData = notes;
+        notesCountEl.textContent = totalCount;
+        validNotesCountEl.textContent = validCount;
+        absentCountEl.textContent = absentCount;
+        validationAverageEl.textContent = average > 0 ? average.toFixed(2) + '/20' : '--';
+        updateStepDisplay(3);
+    }
+
+    function resetForm() {
+        successMessage.style.display = 'none';
+        finalConfirmationModal.style.display = 'none';
+        state.selectedClassId = null;
+        state.selectedSubject = null;
+        state.selectedTeacherId = null;
+        state.evaluationType = null;
+        classSelect.value = '';
+        subjectSelect.innerHTML = '<option value="">Sélectionnez d\'abord une classe</option>';
+        subjectSelect.disabled = true;
+        teacherInput.value = '';
+        dateInput.value = new Date().toISOString().split('T')[0];
+        document.querySelectorAll('.evaluation-type').forEach(el => el.classList.remove('selected'));
+        nextToStep2Btn.disabled = true;
+        updateStepDisplay(1);
+        state.currentClassMatieres = [];
+        state.notesData = [];
+        state.studentsList = [];
+        studentsTableBody.innerHTML = '';
+    }
+
+    function showFinalConfirmation() {
+        modalClass.textContent = state.selectedClassName;
+        modalSubject.textContent = state.selectedSubject;
+        modalType.textContent = state.evaluationType;
+        modalDate.textContent = new Date(state.evaluationDate).toLocaleDateString('fr');
+        modalNotesCount.textContent = validNotesCountEl.textContent;
+        modalAverage.textContent = validationAverageEl.textContent;
+        finalConfirmationModal.style.display = 'flex';
+    }
+
+    function hideFinalConfirmation() {
+        finalConfirmationModal.style.display = 'none';
+    }
+
+    // ---------- IMPORT CSV ----------
+    importCsvBtn.addEventListener('click', () => {
+        csvFileInput.click();
+    });
+
+    csvFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Vérifier que nous sommes à l'étape 2
+        if (state.currentStep !== 2) {
+            alert('Veuillez d\'abord passer à l\'étape 2 (Saisie des notes).');
+            csvFileInput.value = '';
+            return;
+        }
+
+        // Vérifier que les élèves sont chargés
+        if (state.studentsList.length === 0) {
+            alert('Aucun élève trouvé pour cette classe. Veuillez d\'abord charger les élèves.');
+            csvFileInput.value = '';
+            return;
+        }
+
+        PapaParse.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: (results) => {
+                const rows = results.data;
+                if (rows.length === 0) {
+                    alert('Le fichier CSV est vide.');
+                    csvFileInput.value = '';
+                    return;
+                }
+
+                // Vérifier les colonnes attendues
+                const headers = results.meta.fields.map(h => h.toLowerCase());
+                if (!headers.includes('nom') || !headers.includes('prénom') || !headers.includes('note')) {
+                    alert('Le CSV doit contenir les colonnes : nom, prénom, note (en première ligne).');
+                    csvFileInput.value = '';
+                    return;
+                }
+
+                // Index des colonnes
+                const nomIndex = headers.indexOf('nom');
+                const prenomIndex = headers.indexOf('prénom');
+                const noteIndex = headers.indexOf('note');
+
+                // Construire une Map des élèves par nom+prénom normalisés pour recherche rapide
+                const studentsMap = new Map();
+                state.studentsList.forEach(student => {
+                    const key = normalizeString(student.nom + '|' + student.prenom);
+                    studentsMap.set(key, student);
+                });
+
+                // LOG : afficher les clés disponibles
+                console.log("Clés disponibles dans studentsMap:", Array.from(studentsMap.keys()));
+
+                let importedCount = 0;
+                const errors = [];
+
+                rows.forEach((row, index) => {
+                    const nom = row[Object.keys(row)[nomIndex]]?.trim() || '';
+                    const prenom = row[Object.keys(row)[prenomIndex]]?.trim() || '';
+                    const noteStr = row[Object.keys(row)[noteIndex]]?.trim() || '';
+
+                    if (!nom && !prenom) return; // ligne vide ignorée
+
+                    const key = normalizeString(nom + '|' + prenom);
+
+                    // LOG : afficher la clé cherchée
+                    console.log(`Clé cherchée pour "${nom} ${prenom}":`, key);
+
+                    const student = studentsMap.get(key);
+
+                    if (!student) {
+                        errors.push(`Ligne ${index+2} : élève "${nom} ${prenom}" non trouvé dans la classe.`);
+                        return;
+                    }
+
+                    // Trouver l'input correspondant
+                    const input = document.querySelector(`.note-input[data-student-id="${student.id}"]`);
+                    if (input) {
+                        input.value = noteStr;
+                        input.dispatchEvent(new Event('input', { bubbles: true }));
+                        importedCount++;
+                    }
+                });
+
+                if (errors.length > 0) {
+                    alert(`Import terminé avec ${importedCount} notes importées.\n\nErreurs :\n${errors.join('\n')}`);
+                } else {
+                    alert(`Import réussi : ${importedCount} notes importées.`);
+                }
+                csvFileInput.value = '';
+            },
+            error: (error) => {
+                console.error('Erreur de parsing CSV :', error);
+                alert('Erreur lors de la lecture du fichier CSV.');
+                csvFileInput.value = '';
+            }
+        });
+    });
+
+    // ---------- Initialisation des écouteurs ----------
+    function initEventListeners() {
+        classSelect.addEventListener('change', async () => {
+            await loadSubjects();
+            validateStep1();
+        });
+
+        subjectSelect.addEventListener('change', async () => {
+            state.selectedSubject = subjectSelect.value;
+            await updateTeacher();
+            validateStep1();
+        });
+
+        dateInput.addEventListener('change', () => {
+            state.evaluationDate = dateInput.value;
+            validateStep1();
+        });
+
+        document.querySelectorAll('.evaluation-type').forEach(el => {
+            el.addEventListener('click', () => {
+                document.querySelectorAll('.evaluation-type').forEach(e => e.classList.remove('selected'));
+                el.classList.add('selected');
+                state.evaluationType = el.dataset.type;
+                validateStep1();
+            });
+        });
+
+        nextToStep2Btn.addEventListener('click', goToStep2);
+        backToStep1Btn.addEventListener('click', goToStep1);
+        backToStep2Btn.addEventListener('click', () => updateStepDisplay(2));
+        nextToStep3Btn.addEventListener('click', goToStep3);
+        cancelEntryBtn.addEventListener('click', resetForm);
+        newEntryBtn.addEventListener('click', resetForm);
+        newSaisieBtn.addEventListener('click', resetForm);
+
+        confirmValidationBtn.addEventListener('click', showFinalConfirmation);
+        modalCancel.addEventListener('click', hideFinalConfirmation);
+        modalConfirm.addEventListener('click', saveEvaluation);
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await signOut(auth);
+            window.location.href = 'index.html';
+        });
+
+        document.getElementById('mobileToggle').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('mobile-open');
+        });
+    }
+
+    function validateStep1() {
+        const classOk = classSelect.value;
+        const subjectOk = subjectSelect.value;
+        const typeOk = state.evaluationType;
+        const dateOk = dateInput.value;
+
+        nextToStep2Btn.disabled = !(classOk && subjectOk && typeOk && dateOk);
+    }
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            document.getElementById('sidebar').classList.remove('mobile-open');
+        }
+    });
+
+</script>
+
+<!-- Script pour le toggle sidebar et l'icône -->
+<script>
+    (function() {
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleSidebar');
+        const toggleIcon = document.getElementById('toggleIcon');
+
+        if (toggleBtn && sidebar) {
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+                toggleIcon.textContent = sidebar.classList.contains('collapsed') ? 'chevron_right' : 'chevron_left';
+            });
+
+            function handleResize() {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.add('collapsed');
+                    toggleIcon.textContent = 'chevron_right';
+                } else {
+                    sidebar.classList.remove('collapsed');
+                    toggleIcon.textContent = 'chevron_left';
+                }
+            }
+            window.addEventListener('resize', handleResize);
+            handleResize();
+        }
+    })();
+</script>
+</body>
+</html>

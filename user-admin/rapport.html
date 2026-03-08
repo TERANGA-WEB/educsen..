@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport de performance | Educsen</title>
+    <!-- Google Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        /* ========== STYLE GLOBAL ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafc;
+            color: #1e293b;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ========== NOUVELLE SIDEBAR STANDARDISÉE ========== */
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: rgba(59, 130, 246, 0.2);
+            --secondary: #10b981;
+            --secondary-dark: #059669;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+            
+            --gray-50: #0f172a;
+            --gray-100: #1e293b;
+            --gray-200: #334155;
+            --gray-300: #475569;
+            --gray-400: #64748b;
+            --gray-500: #94a3b8;
+            --gray-600: #cbd5e1;
+            --gray-700: #e2e8f0;
+            --gray-800: #f1f5f9;
+            --gray-900: #f8fafc;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar-header {
+            padding: 20px 16px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .logo-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .logo-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: opacity 0.2s;
+            color: white;
+        }
+
+        .sidebar.collapsed .logo-text {
+            opacity: 0;
+            width: 0;
+        }
+
+        .logo-text span {
+            color: #3b82f6;
+        }
+
+        .toggle-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #4b5563;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 24px;
+            margin: 0 12px;
+            border-radius: 12px;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-item .nav-icon {
+            font-size: 1.5rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-item span:last-child {
+            transition: opacity 0.2s;
+        }
+
+        .sidebar.collapsed .nav-item span:last-child {
+            opacity: 0;
+            width: 0;
+            display: none;
+        }
+
+        .nav-item.active {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 8px 16px -4px rgba(59,130,246,0.3);
+        }
+
+        .nav-item:hover:not(.active) {
+            background: #334155;
+            color: white;
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid #334155;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            white-space: nowrap;
+            margin-bottom: 12px;
+        }
+
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            background: #3b82f6;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .user-details {
+            overflow: hidden;
+        }
+
+        .user-name {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-transform: capitalize;
+        }
+
+        .sidebar.collapsed .user-details {
+            opacity: 0;
+            width: 0;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            white-space: nowrap;
+            text-decoration: none;
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        /* ===== BOUTON TOGGLE MOBILE ===== */
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            width: 48px;
+            height: 48px;
+            z-index: 1001;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 32px;
+            transition: margin-left 0.3s ease;
+            width: calc(100% - 280px);
+        }
+
+        .sidebar.collapsed ~ .main-content {
+            margin-left: 80px;
+            width: calc(100% - 80px);
+        }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header-left h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+        .header-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .badge-year {
+            background: #e2e8f0;
+            color: #334155;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .period-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 4px 4px 4px 16px;
+            border-radius: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid #e2e8f0;
+        }
+
+        .period-label {
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .period-select {
+            padding: 8px 16px;
+            border: none;
+            background: #f1f5f9;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1e293b;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        /* Indicateurs clés (KPI cards) */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 24px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+            border: 1px solid #f0f2f5;
+            transition: all 0.2s;
+        }
+
+        .kpi-card:hover {
+            box-shadow: 0 12px 24px rgba(0,0,0,0.06);
+            border-color: #d0d7de;
+        }
+
+        .kpi-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+        .kpi-label {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+
+        .kpi-trend {
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 30px;
+            background: #f1f5f9;
+            color: #334155;
+            display: inline-block;
+        }
+
+        /* Sections */
+        .section {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.02);
+            border: 1px solid #f0f2f5;
+            margin-bottom: 32px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 20px 28px;
+            background: #ffffff;
+            border-bottom: 1px solid #edf2f7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title .material-icons {
+            color: #3b82f6;
+        }
+
+        .section-badge {
+            background: #e6f0ff;
+            color: #2563eb;
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .section-content {
+            padding: 24px 28px;
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px;
+        }
+
+        th {
+            text-align: left;
+            padding: 16px 12px;
+            background: #f8fafd;
+            color: #334155;
+            font-weight: 600;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 16px 12px;
+            border-bottom: 1px solid #edf2f7;
+            color: #1e293b;
+            font-size: 14px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: #fafbff;
+        }
+
+        .performance-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .perf-good {
+            background: #e6f7e6;
+            color: #0e7b0e;
+        }
+
+        .perf-medium {
+            background: #fff4e5;
+            color: #b45b0a;
+        }
+
+        .perf-bad {
+            background: #ffe6e6;
+            color: #b00f0f;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 48px;
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        .decision-card {
+            background: #f0f7ff;
+            border-left: 5px solid #3b82f6;
+            padding: 24px 28px;
+            border-radius: 16px;
+        }
+
+        .decision-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 16px;
+            color: #0f172a;
+            margin-bottom: 12px;
+        }
+
+        .decision-text {
+            line-height: 1.7;
+            color: #1e293b;
+        }
+
+        @media (max-width: 1024px) {
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px !important;
+                transition: transform 0.3s ease;
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            .sidebar.collapsed {
+                width: 80px !important;
+            }
+            .main-content {
+                margin-left: 0 !important;
+                width: 100%;
+                padding: 24px 16px;
+            }
+            .mobile-toggle {
+                display: flex;
+            }
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- NOUVELLE SIDEBAR STANDARDISÉE -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-header">
+                <div class="logo-area">
+                    <div class="logo-icon">E</div>
+                    <span class="logo-text">Educ<span>sen</span></span>
+                </div>
+                <button class="toggle-btn" id="toggleSidebar">
+                    <span class="material-icons" id="toggleIcon">chevron_left</span>
+                </button>
+            </div>
+        </div>
+
+
+        <nav class="nav-menu">
+            <a href="/userdashboard.html" class="nav-item active">
+                <span class="nav-icon material-icons">dashboard</span>
+                <span>Dashboard</span>
+            </a>
+             <a href="/user-admin/assistant.html" class="nav-item">
+                <span class="nav-icon material-icons">assessment</span>
+                <span>Assistant</span>
+            </a>
+            <a href="/user-admin/rapport.html" class="nav-item">
+                <span class="nav-icon material-icons">assessment</span>
+                <span>Rapport</span>
+            </a>
+            <a href="/user-admin/classes.html" class="nav-item">
+                <span class="nav-icon material-icons">school</span>
+                <span>Classes</span>
+            </a>
+            <a href="/user-admin/professeurs.html" class="nav-item">
+                <span class="nav-icon material-icons">person</span>
+                <span>Professeurs</span>
+            </a>
+            <a href="/user-admin/eleves.html" class="nav-item">
+                <span class="nav-icon material-icons">groups</span>
+                <span>Élèves</span>
+            </a>
+            <a href="/user-admin/notes.html" class="nav-item">
+                <span class="nav-icon material-icons">assignment</span>
+                <span>Notes</span>
+            </a>
+            <a href="/user-admin/parametres.html" class="nav-item">
+                <span class="nav-icon material-icons">settings</span>
+                <span>Paramètres</span>
+            </a>
+        </nav>
+
+
+        <div class="sidebar-footer">
+            <div class="user-info" id="userInfo">
+                <div class="user-avatar" id="userAvatar">DI</div>
+                <div class="user-details">
+                    <div class="user-name" id="userNameDisplay">Direction</div>
+                    <div class="user-role" id="userRole">admin</div>
+                </div>
+            </div>
+            <a href="index.html" class="logout-btn" id="logoutBtn">
+                <span class="material-icons">logout</span>
+                <span>Déconnexion</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Bouton toggle mobile -->
+    <button class="mobile-toggle" id="mobileToggle">
+        <span class="material-icons">menu</span>
+    </button>
+
+    <div class="main-content" id="mainContent">
+        <!-- En-tête -->
+        <div class="page-header">
+            <div>
+                <h1>Rapport de performance</h1>
+                <div class="header-info">
+                    <span class="badge-year">2025-2026</span>
+                    <div class="period-selector">
+                        <span class="period-label">Période :</span>
+                        <select class="period-select" id="periodSelect">
+                            <option value="derniere">Dernière période</option>
+                            <option value="trimestre1">Trimestre 1</option>
+                            <option value="trimestre2">Trimestre 2</option>
+                            <option value="trimestre3">Trimestre 3</option>
+                            <option value="mois_sept">Septembre</option>
+                            <option value="mois_oct">Octobre</option>
+                            <option value="mois_nov">Novembre</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-primary" id="exportPdfBtn">
+                <span class="material-icons">picture_as_pdf</span>
+                Exporter PDF
+            </button>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card" id="indicatorRegress">
+                <div class="kpi-value">---</div>
+                <div class="kpi-label">Élèves en régression</div>
+                <div class="kpi-trend">note < 6</div>
+            </div>
+            <div class="kpi-card" id="indicatorProgress">
+                <div class="kpi-value">---</div>
+                <div class="kpi-label">Élèves en forte progression</div>
+                <div class="kpi-trend">note > 17</div>
+            </div>
+            <div class="kpi-card" id="indicatorTeachers">
+                <div class="kpi-value">---</div>
+                <div class="kpi-label">Professeurs sous performance</div>
+                <div class="kpi-trend">moyenne < 10</div>
+            </div>
+            <div class="kpi-card" id="indicatorClasses">
+                <div class="kpi-value">---</div>
+                <div class="kpi-label">Classes à risque</div>
+                <div class="kpi-trend">moyenne < 10</div>
+            </div>
+        </div>
+
+        <!-- Professeurs sous performance -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title"><span class="material-icons">warning</span> Professeurs sous performance</h2>
+            </div>
+            <div class="section-content">
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Professeur</th><th>matière</th><th>Classe(s)</th><th>Moyenne</th></tr></thead>
+                        <tbody id="teachersTable"><tr><td colspan="4" class="empty-message">Chargement...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- PARTIE 1 : Classes progression/régression & matières excellentes -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title"><span class="material-icons">trending_up</span> Classes en progression </h2>
+            </div>
+            <div class="section-content">
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Classe</th><th>Moyenne</th></tr></thead>
+                        <tbody id="classesProgressTable"><tr><td colspan="2" class="empty-message">Chargement...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title"><span class="material-icons">trending_down</span> Classes en régression </h2>
+            </div>
+            <div class="section-content">
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Classe</th><th>Moyenne</th></tr></thead>
+                        <tbody id="classesRegressTable"><tr><td colspan="2" class="empty-message">Chargement...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title"><span class="material-icons">star</span> Matières avec bonne moyenne </h2>
+            </div>
+            <div class="section-content">
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Matière</th><th>Moyenne</th></tr></thead>
+                        <tbody id="subjectsGoodTable"><tr><td colspan="2" class="empty-message">Chargement...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PARTIE 2 : Moyenne des classes avec indicateur de performance -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title"><span class="material-icons">school</span> Moyenne des classes</h2>
+                <span class="section-badge">avec performance</span>
+            </div>
+            <div class="section-content">
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Classe</th><th>Moyenne</th><th>Performance</th></tr></thead>
+                        <tbody id="allClassesTable"><tr><td colspan="3" class="empty-message">Chargement...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PARTIE 3 : Élèves en forte progression -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title"><span class="material-icons">star</span> Élèves en forte progression </h2>
+            </div>
+            <div class="section-content">
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Élève</th><th>matière</th><th>Classe</th><th>Note</th></tr></thead>
+                        <tbody id="strongProgressTable"><tr><td colspan="4" class="empty-message">Chargement...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Résumé décisionnel -->
+        <div class="section">
+            <div class="section-header">
+                <h2 class="section-title"><span class="material-icons">summarize</span> Résumé décisionnel</h2>
+            </div>
+            <div class="section-content">
+                <div class="decision-card">
+                    <div class="decision-title"><span class="material-icons">insights</span> Analyse de la période</div>
+                    <div class="decision-text" id="decisionText">Chargement...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Firebase (version modulaire) - inchangé -->
+    <script type="module">
+        // ========== IMPORT FIREBASE ==========
+        import { initializeApp, getApps, getApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+        import {
+            getFirestore,
+            collection,
+            doc,
+            getDocs,
+            addDoc,
+            setDoc,
+            query,
+            where,
+            orderBy,
+            limit,
+            writeBatch
+        } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+
+        // ========== CONFIGURATION FIREBASE ==========
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7B-0O9mOdbIDQV-g6hsZx07G2ZvzKoxo",
+            authDomain: "real-educsen.firebaseapp.com",
+            projectId: "real-educsen",
+            storageBucket: "real-educsen.firebasestorage.app",
+            messagingSenderId: "80660233362",
+            appId: "1:80660233362:web:5edf5060254170056eba4b"
+        };
+
+        // Initialisation
+        const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // ========== ÉLÉMENTS DOM ==========
+        const classesProgressTbody = document.getElementById('classesProgressTable');
+        const classesRegressTbody = document.getElementById('classesRegressTable');
+        const subjectsGoodTbody = document.getElementById('subjectsGoodTable');
+        const allClassesTbody = document.getElementById('allClassesTable');
+        const strongProgressTbody = document.getElementById('strongProgressTable');
+        const teachersTbody = document.getElementById('teachersTable');
+        const decisionText = document.getElementById('decisionText');
+        
+        // Indicateurs KPI (les valeurs sont dans .kpi-value)
+        const indicatorRegress = document.querySelector('#indicatorRegress .kpi-value');
+        const indicatorProgress = document.querySelector('#indicatorProgress .kpi-value');
+        const indicatorTeachers = document.querySelector('#indicatorTeachers .kpi-value');
+        const indicatorClasses = document.querySelector('#indicatorClasses .kpi-value');
+
+        const periodSelect = document.getElementById('periodSelect');
+        const exportBtn = document.getElementById('exportPdfBtn');
+        const currentYearSpan = document.getElementById('currentYear');
+
+        // ========== FONCTIONS ANNEXES ==========
+        function setCurrentYear() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const nextYear = year + 1;
+            // currentYearSpan.textContent = `${year}-${nextYear}`;
+        }
+        setCurrentYear();
+
+        // Gestion de la sidebar (nouvelle version)
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleSidebar');
+        const mobileToggle = document.getElementById('mobileToggle');
+        const toggleIcon = document.getElementById('toggleIcon');
+
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+                toggleIcon.textContent = sidebar.classList.contains('collapsed') ? 'chevron_right' : 'chevron_left';
+            });
+        }
+
+        if (mobileToggle) {
+            mobileToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('mobile-open');
+                if (window.innerWidth <= 768 && sidebar.classList.contains('collapsed')) {
+                    sidebar.classList.remove('collapsed');
+                    toggleIcon.textContent = 'chevron_left';
+                }
+            });
+        }
+
+        // Fermer la sidebar si on clique en dehors sur mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768) {
+                if (!sidebar.contains(e.target) && !mobileToggle.contains(e.target)) {
+                    sidebar.classList.remove('mobile-open');
+                }
+            }
+        });
+
+        // Gestion du redimensionnement
+        function handleResize() {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('collapsed');
+                toggleIcon.textContent = 'chevron_left';
+            } else {
+                sidebar.classList.remove('mobile-open');
+            }
+        }
+        window.addEventListener('resize', handleResize);
+        handleResize();
+
+        // ========== RÉCUPÉRATION DE L'UTILISATEUR COURANT ==========
+        async function getCurrentUser() {
+            try {
+                // Chercher d'abord dans "details"
+                const detailsSnap = await getDocs(collection(db, 'details'));
+                if (!detailsSnap.empty) {
+                    const data = detailsSnap.docs[0].data();
+                    return { uid: data.uid || 'inconnu', email: data.email || 'inconnu@educsen' };
+                }
+                // Sinon dans "users"
+                const usersSnap = await getDocs(collection(db, 'users'));
+                if (!usersSnap.empty) {
+                    const data = usersSnap.docs[0].data();
+                    return { uid: data.uid || 'inconnu', email: data.email || 'inconnu@educsen' };
+                }
+            } catch (e) {
+                console.warn('Impossible de récupérer l’utilisateur courant', e);
+            }
+            return { uid: 'default', email: 'default@educsen' };
+        }
+
+        // ========== FONCTION PRINCIPALE ==========
+        async function generateAndShowReport() {
+            try {
+                console.log('🔄 Chargement des données...');
+                
+                // 1. Récupérer l'utilisateur courant
+                const currentUser = await getCurrentUser();
+                console.log('Utilisateur courant:', currentUser);
+
+                // 2. Récupérer toutes les classes et leurs élèves
+                const classesSnap = await getDocs(collection(db, 'classes'));
+                console.log('Classes trouvées :', classesSnap.size);
+
+                // Map pour stocker les infos des classes
+                const classesMap = new Map(); // classeId -> { nom, matieres }
+                const professeursMap = new Map(); // professeurId -> { nom, matiere, classes: Set }
+
+                // Récupération parallèle des élèves par classe
+                const elevesPromises = [];
+                classesSnap.forEach(doc => {
+                    const classeId = doc.id;
+                    const data = doc.data();
+                    const classeNom = data.nomClasse || 'Inconnue';
+                    const matieres = data.matieres || [];
+                    classesMap.set(classeId, { nom: classeNom, matieres });
+
+                    // Extraire les professeurs depuis le tableau matieres
+                    matieres.forEach(m => {
+                        if (m.professeurId) {
+                            if (!professeursMap.has(m.professeurId)) {
+                                professeursMap.set(m.professeurId, {
+                                    nom: m.professeurNom || 'Inconnu',
+                                    matiere: m.nom || 'Inconnue',
+                                    classes: new Set()
+                                });
+                            }
+                            professeursMap.get(m.professeurId).classes.add(classeNom);
+                        }
+                    });
+
+                    elevesPromises.push(
+                        getDocs(collection(db, 'classes', classeId, 'eleves')).then(snap => ({ classeId, snap }))
+                    );
+                });
+
+                // Élèves
+                const elevesResults = await Promise.all(elevesPromises);
+                const elevesMap = new Map(); // eleveId -> { nom, prenom, classeId, classeNom }
+                elevesResults.forEach(({ classeId, snap }) => {
+                    const classeNom = classesMap.get(classeId).nom;
+                    snap.forEach(doc => {
+                        const data = doc.data();
+                        const nomComplet = `${data.prenom || ''} ${data.nom || ''}`.trim() || 'Inconnu';
+                        elevesMap.set(doc.id, {
+                            nom: nomComplet,
+                            prenom: data.prenom,
+                            nomFamille: data.nom,
+                            classeId,
+                            classeNom
+                        });
+                    });
+                });
+                console.log('Élèves trouvés :', elevesMap.size);
+
+                // 3. Récupérer toutes les évaluations et leurs notes
+                const evaluationsSnap = await getDocs(collection(db, 'evaluations'));
+                console.log('Évaluations trouvées :', evaluationsSnap.size);
+
+                const notesPromises = evaluationsSnap.docs.map(async (evalDoc) => {
+                    const evalData = evalDoc.data();
+                    const notesSnap = await getDocs(collection(db, 'evaluations', evalDoc.id, 'notes'));
+                    const notes = [];
+                    notesSnap.forEach(noteDoc => {
+                        const noteData = noteDoc.data();
+                        notes.push({
+                            eleveId: noteData.eleveId,
+                            note: noteData.note,
+                            updatedAt: noteData.updatedAt
+                        });
+                    });
+                    return {
+                        id: evalDoc.id,
+                        classeId: evalData.classeId,
+                        matiere: evalData.matiere,
+                        professeurId: evalData.professeurId,
+                        createdAt: evalData.createdAt,
+                        notes: notes
+                    };
+                });
+
+                const evaluations = await Promise.all(notesPromises);
+                console.log('Notes chargées pour', evaluations.length, 'évaluations');
+
+                // Si aucune donnée, afficher message
+                if (classesMap.size === 0 && evaluations.length === 0) {
+                    const emptyMsg = '<tr><td colspan="4" class="empty-message">Aucune donnée trouvée.</td></tr>';
+                    teachersTbody.innerHTML = emptyMsg;
+                    classesProgressTbody.innerHTML = '<tr><td colspan="2" class="empty-message">Aucune donnée</td></tr>';
+                    classesRegressTbody.innerHTML = '<tr><td colspan="2" class="empty-message">Aucune donnée</td></tr>';
+                    subjectsGoodTbody.innerHTML = '<tr><td colspan="2" class="empty-message">Aucune donnée</td></tr>';
+                    allClassesTbody.innerHTML = '<tr><td colspan="3" class="empty-message">Aucune donnée</td></tr>';
+                    strongProgressTbody.innerHTML = '<tr><td colspan="4" class="empty-message">Aucune donnée</td></tr>';
+                    indicatorRegress.textContent = '0';
+                    indicatorProgress.textContent = '0';
+                    indicatorTeachers.textContent = '0';
+                    indicatorClasses.textContent = '0';
+                    decisionText.textContent = 'Aucune donnée disponible.';
+                    return;
+                }
+
+                // ========== CALCULS ==========
+                // Agrégateurs
+                const classTotals = new Map(); // classeId -> { total, count }
+                const subjectTotals = new Map(); // matiere -> { total, count }
+                const professorTotals = new Map(); // professeurId -> { total, count, evaluationsCount, lastCreatedAt }
+                const studentNotes = new Map(); // eleveId -> { total, count, notes: [] }
+                const strongProgressStudents = []; // élèves avec note > 17
+                const regressionStudents = []; // élèves avec note < 6
+
+                evaluations.forEach(evalItem => {
+                    const { classeId, matiere, professeurId, createdAt, notes } = evalItem;
+
+                    notes.forEach(({ eleveId, note }) => {
+                        if (!eleveId || note === undefined) return;
+
+                        // Stats par classe
+                        if (classeId) {
+                            if (!classTotals.has(classeId)) {
+                                classTotals.set(classeId, { total: 0, count: 0 });
+                            }
+                            const c = classTotals.get(classeId);
+                            c.total += note;
+                            c.count++;
+                        }
+
+                        // Stats par matière
+                        if (matiere) {
+                            if (!subjectTotals.has(matiere)) {
+                                subjectTotals.set(matiere, { total: 0, count: 0 });
+                            }
+                            const s = subjectTotals.get(matiere);
+                            s.total += note;
+                            s.count++;
+                        }
+
+                        // Stats par professeur
+                        if (professeurId) {
+                            if (!professorTotals.has(professeurId)) {
+                                professorTotals.set(professeurId, {
+                                    total: 0,
+                                    count: 0,
+                                    evaluationsCount: 0,
+                                    lastCreatedAt: null
+                                });
+                            }
+                            const p = professorTotals.get(professeurId);
+                            p.total += note;
+                            p.count++;
+                        }
+
+                        // Stats par élève
+                        if (!studentNotes.has(eleveId)) {
+                            studentNotes.set(eleveId, { total: 0, count: 0, notes: [] });
+                        }
+                        const st = studentNotes.get(eleveId);
+                        st.total += note;
+                        st.count++;
+                        st.notes.push(note);
+
+                        // Élèves en forte progression (note > 17)
+                        if (note > 17) {
+                            const eleve = elevesMap.get(eleveId);
+                            if (eleve) {
+                                strongProgressStudents.push({
+                                    eleveId,
+                                    nomEleve: eleve.nom,
+                                    classe: eleve.classeNom,
+                                    matiere,
+                                    note
+                                });
+                            }
+                        }
+
+                        // Élèves en régression (note < 6)
+                        if (note < 6) {
+                            const eleve = elevesMap.get(eleveId);
+                            if (eleve) {
+                                regressionStudents.push({
+                                    eleveId,
+                                    nomEleve: eleve.nom,
+                                    classe: eleve.classeNom,
+                                    matiere,
+                                    note
+                                });
+                            }
+                        }
+                    });
+
+                    // Compteur d'évaluations par professeur
+                    if (professeurId && professorTotals.has(professeurId)) {
+                        const p = professorTotals.get(professeurId);
+                        p.evaluationsCount++;
+                        if (createdAt) {
+                            const date = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
+                            if (!p.lastCreatedAt || date > p.lastCreatedAt) {
+                                p.lastCreatedAt = date;
+                            }
+                        }
+                    }
+                });
+
+                // Moyennes par classe
+                const classAverages = [];
+                for (let [classeId, stat] of classTotals.entries()) {
+                    const moyenne = stat.count > 0 ? stat.total / stat.count : 0;
+                    const classeNom = classesMap.get(classeId)?.nom || 'Inconnue';
+                    classAverages.push({ classeId, nom: classeNom, moyenne });
+                }
+
+                // Moyennes par matière
+                const subjectAverages = [];
+                for (let [matiere, stat] of subjectTotals.entries()) {
+                    const moyenne = stat.count > 0 ? stat.total / stat.count : 0;
+                    subjectAverages.push({ matiere, moyenne });
+                }
+
+                // Moyennes par professeur (globales)
+                const professorAverages = [];
+                for (let [profId, stat] of professorTotals.entries()) {
+                    const moyenne = stat.count > 0 ? stat.total / stat.count : 0;
+                    const profInfo = professeursMap.get(profId) || { nom: 'Inconnu', matiere: 'Inconnue', classes: new Set() };
+                    professorAverages.push({
+                        professeurId: profId,
+                        nom: profInfo.nom,
+                        matiere: profInfo.matiere,
+                        classes: Array.from(profInfo.classes),
+                        moyenne,
+                        evaluationsCount: stat.evaluationsCount,
+                        lastCreatedAt: stat.lastCreatedAt
+                    });
+                }
+
+                // Professeurs sous performance (moyenne < 10)
+                const underperformingTeachers = professorAverages
+                    .filter(p => p.moyenne < 10)
+                    .sort((a, b) => a.moyenne - b.moyenne);
+
+                // Classes en progression (moyenne > 14)
+                const progressingClasses = classAverages.filter(c => c.moyenne > 14).sort((a, b) => b.moyenne - a.moyenne);
+                // Classes en régression (moyenne < 10)
+                const regressingClasses = classAverages.filter(c => c.moyenne < 10).sort((a, b) => a.moyenne - b.moyenne);
+
+                // Matières avec bonne moyenne (>14)
+                const goodSubjects = subjectAverages.filter(s => s.moyenne > 14).sort((a, b) => b.moyenne - a.moyenne);
+
+                // Limiter l'affichage des élèves en progression à 50
+                const topStrongProgress = strongProgressStudents.slice(0, 50);
+
+                // ========== MISE À JOUR DE L'INTERFACE ==========
+                // Indicateurs KPI
+                indicatorRegress.textContent = regressionStudents.length;
+                indicatorProgress.textContent = strongProgressStudents.length;
+                indicatorTeachers.textContent = underperformingTeachers.length;
+                indicatorClasses.textContent = regressingClasses.length;
+
+                // Classes en progression
+                classesProgressTbody.innerHTML = progressingClasses.length 
+                    ? '' 
+                    : '<tr><td colspan="2" class="empty-message">Aucune classe en progression</td></tr>';
+                progressingClasses.forEach(c => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>${c.nom}</td><td>${c.moyenne.toFixed(2)}</td>`;
+                    classesProgressTbody.appendChild(row);
+                });
+
+                // Classes en régression
+                classesRegressTbody.innerHTML = regressingClasses.length 
+                    ? '' 
+                    : '<tr><td colspan="2" class="empty-message">Aucune classe en régression</td></tr>';
+                regressingClasses.forEach(c => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>${c.nom}</td><td>${c.moyenne.toFixed(2)}</td>`;
+                    classesRegressTbody.appendChild(row);
+                });
+
+                // Matières avec bonne moyenne
+                subjectsGoodTbody.innerHTML = goodSubjects.length 
+                    ? '' 
+                    : '<tr><td colspan="2" class="empty-message">Aucune matière avec bonne moyenne</td></tr>';
+                goodSubjects.forEach(s => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>${s.matiere}</td><td>${s.moyenne.toFixed(2)}</td>`;
+                    subjectsGoodTbody.appendChild(row);
+                });
+
+                // Toutes les classes avec performance
+                allClassesTbody.innerHTML = classAverages.length 
+                    ? '' 
+                    : '<tr><td colspan="3" class="empty-message">Aucune classe</td></tr>';
+                classAverages.sort((a, b) => b.moyenne - a.moyenne).forEach(c => {
+                    const row = document.createElement('tr');
+                    let perfClass = '';
+                    let icon = '';
+                    if (c.moyenne >= 14) {
+                        perfClass = 'perf-good';
+                        icon = '<span class="material-icons" style="font-size:18px;">trending_up</span> Bonne';
+                    } else if (c.moyenne >= 10) {
+                        perfClass = 'perf-medium';
+                        icon = '<span class="material-icons" style="font-size:18px;">trending_flat</span> Moyenne';
+                    } else {
+                        perfClass = 'perf-bad';
+                        icon = '<span class="material-icons" style="font-size:18px;">trending_down</span> Faible';
+                    }
+                    row.innerHTML = `<td>${c.nom}</td><td>${c.moyenne.toFixed(2)}</td><td><span class="performance-badge ${perfClass}">${icon}</span></td>`;
+                    allClassesTbody.appendChild(row);
+                });
+
+                // Élèves en forte progression
+                strongProgressTbody.innerHTML = topStrongProgress.length 
+                    ? '' 
+                    : '<tr><td colspan="4" class="empty-message">Aucun élève en forte progression</td></tr>';
+                topStrongProgress.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>${item.nomEleve}</td><td>${item.matiere}</td><td>${item.classe}</td><td>${item.note}</td>`;
+                    strongProgressTbody.appendChild(row);
+                });
+
+                // Professeurs sous performance
+                teachersTbody.innerHTML = underperformingTeachers.length 
+                    ? '' 
+                    : '<tr><td colspan="4" class="empty-message">Aucun professeur sous performance</td></tr>';
+                underperformingTeachers.forEach(p => {
+                    const classesStr = p.classes.join(', ');
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>${p.nom}</td><td>${p.matiere}</td><td>${classesStr}</td><td>${p.moyenne.toFixed(2)}</td>`;
+                    teachersTbody.appendChild(row);
+                });
+
+                // Résumé décisionnel
+                const msg = `Période analysée : ${periodSelect.options[periodSelect.selectedIndex].text}. ` +
+                    `${indicatorProgress.textContent} élèves en forte progression (note > 17), ${indicatorRegress.textContent} élèves en régression (note < 6). ` +
+                    `${indicatorTeachers.textContent} professeurs ont une moyenne inférieure à 10. ` +
+                    `${regressingClasses.length} classes ont une moyenne < 10, ${progressingClasses.length} classes ont une moyenne > 14. ` +
+                    `Recommandation : ` +
+                    (indicatorTeachers.textContent > 0 ? 'organiser des formations pour les professeurs concernés ; ' : '') +
+                    (regressingClasses.length > 0 ? 'mettre en place un soutien pour ces classes. ' : '') +
+                    (strongProgressStudents.length > 0 ? 'valoriser les élèves en forte progression.' : '');
+                decisionText.textContent = msg;
+
+                // ========== STOCKAGE DANS LES COLLECTIONS RAPPORT ==========
+                // Préparation des données pour rapport-eleves (par classe)
+                const elevesByClass = new Map();
+                for (let [eleveId, stats] of studentNotes.entries()) {
+                    const eleve = elevesMap.get(eleveId);
+                    if (!eleve) continue;
+                    const classeId = eleve.classeId;
+                    if (!elevesByClass.has(classeId)) {
+                        elevesByClass.set(classeId, []);
+                    }
+                    const moyenne = stats.count > 0 ? stats.total / stats.count : 0;
+                    // Déterminer une évolution simple
+                    let evolution = 'stable';
+                    if (moyenne > 14) evolution = 'progression';
+                    else if (moyenne < 10) evolution = 'régression';
+                    const hasStrong = stats.notes.some(n => n > 17);
+
+                    elevesByClass.get(classeId).push({
+                        id: eleveId,
+                        nom: eleve.nomFamille || '',
+                        prenom: eleve.prenom || '',
+                        moyenne: moyenne,
+                        nombreNotes: stats.count,
+                        evolution: evolution,
+                        forteProgression: hasStrong
+                    });
+                }
+
+                // Écriture dans rapport-eleves
+                for (let [classeId, elevesArray] of elevesByClass.entries()) {
+                    const classeNom = classesMap.get(classeId)?.nom || 'Inconnue';
+                    const rapportDoc = {
+                        className: classeNom,
+                        createdBy: currentUser.email,
+                        dateGeneration: new Date().toISOString(),
+                        eleves: elevesArray
+                    };
+                    await addDoc(collection(db, 'rapport-eleves'), rapportDoc);
+                }
+                console.log('✅ Données enregistrées dans rapport-eleves');
+
+                // Préparation pour rapport_professeurs
+                const professeursArray = professorAverages.map(p => {
+                    let status = 'moyen';
+                    if (p.moyenne >= 14) status = 'bon';
+                    else if (p.moyenne < 10) status = 'faible';
+                    else if (p.evaluationsCount === 0) status = 'aucune';
+
+                    return {
+                        id: p.professeurId,
+                        nomComplet: p.nom,
+                        matiere: p.matiere,
+                        classes: p.classes,
+                        moyenne: p.moyenne,
+                        status: status,
+                        lastEvaluationCount: p.evaluationsCount,
+                        lastEvaluationCreatedAt: p.lastCreatedAt ? p.lastCreatedAt.toISOString() : null,
+                        lastUpdated: new Date().toISOString()
+                    };
+                });
+
+                // Chercher un document existant pour cet utilisateur
+                const profReportQuery = query(collection(db, 'rapport'), where('userId', '==', currentUser.uid));
+                const profReportSnap = await getDocs(profReportQuery);
+
+                if (!profReportSnap.empty) {
+                    const docRef = profReportSnap.docs[0].ref;
+                    await setDoc(docRef, {
+                        userId: currentUser.uid,
+                        data: professeursArray,
+                        lastUpdated: new Date().toISOString()
+                    }, { merge: true });
+                } else {
+                    await addDoc(collection(db, 'rapport'), {
+                        userId: currentUser.uid,
+                        data: professeursArray,
+                        lastUpdated: new Date().toISOString()
+                    });
+                }
+                console.log('✅ Données enregistrées dans rapport');
+
+            } catch (error) {
+                console.error('❌ Erreur lors de la génération du rapport :', error);
+                const errorMsg = '<tr><td colspan="4" class="empty-message">Erreur de chargement : ' + error.message + '</td></tr>';
+                teachersTbody.innerHTML = errorMsg;
+                classesProgressTbody.innerHTML = errorMsg;
+                classesRegressTbody.innerHTML = errorMsg;
+                subjectsGoodTbody.innerHTML = errorMsg;
+                allClassesTbody.innerHTML = errorMsg;
+                strongProgressTbody.innerHTML = errorMsg;
+                indicatorRegress.textContent = 'Err';
+                indicatorProgress.textContent = 'Err';
+                indicatorTeachers.textContent = 'Err';
+                indicatorClasses.textContent = 'Err';
+                decisionText.textContent = 'Une erreur est survenue. Vérifiez la console.';
+            }
+        }
+
+        // ========== LANCEMENT ==========
+        document.addEventListener('DOMContentLoaded', generateAndShowReport);
+        periodSelect.addEventListener('change', generateAndShowReport);
+        exportBtn.addEventListener('click', () => {
+            alert('Fonction d’export PDF à implémenter.');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZeynIA · Assistant pédagogique</title>
+    <!-- Google Fonts & Font Awesome & Material Icons (pour la sidebar) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* ---------- Thème sombre (par défaut) ---------- */
+        :root {
+            --bg-body: #0f172a;
+            --bg-chat: #0f172a;
+            --bg-header: #0f172a;
+            --bg-input: #1e293b;
+            --bg-user-message: #1e293b;
+            --bg-assistant-message: #2d3748;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-subtle: #334155;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.5);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --transition: background-color 0.3s ease, border-color 0.2s, box-shadow 0.2s;
+        }
+
+        /* ---------- Thème clair ---------- */
+        body.light-theme {
+            --bg-body: #ffffff;
+            --bg-chat: #f9f9f9;
+            --bg-header: #ffffff;
+            --bg-input: #ffffff;
+            --bg-user-message: #e5efff;
+            --bg-assistant-message: #f0f0f0;
+            --text-primary: #1e293b;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --border-subtle: #e2e8f0;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            transition: var(--transition);
+            overflow: hidden; /* évite le scroll global, géré par chat-container */
+        }
+
+        /* ========== SIDEBAR (identique à la page Professeurs) ========== */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+            height: 100vh;
+            flex-shrink: 0;
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        /* Nouveau header avec flex pour le logo et le bouton */
+        .sidebar-header {
+            padding: 20px 16px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .logo-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+        }
+
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .logo-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: opacity 0.2s;
+        }
+
+        .sidebar.collapsed .logo-text {
+            opacity: 0;
+            width: 0;
+        }
+
+        /* Bouton toggle intégré à la sidebar */
+        .toggle-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #4b5563;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 24px;
+            margin: 0 12px;
+            border-radius: 12px;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-item .nav-icon {
+            font-size: 1.5rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-item span:last-child {
+            transition: opacity 0.2s;
+        }
+
+        .sidebar.collapsed .nav-item span:last-child {
+            opacity: 0;
+            width: 0;
+            display: none;
+        }
+
+        .nav-item.active {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 8px 16px -4px rgba(59,130,246,0.3);
+        }
+
+        .nav-item:hover:not(.active) {
+            background: #334155;
+            color: white;
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid #334155;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            white-space: nowrap;
+        }
+
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            background: #3b82f6;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .user-details {
+            overflow: hidden;
+        }
+
+        .user-name {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-transform: capitalize;
+        }
+
+        .sidebar.collapsed .user-details {
+            opacity: 0;
+            width: 0;
+        }
+
+        /* ========== MAIN WRAPPER ========== */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* En‑tête (inchangé) */
+        .app-header {
+            padding: 20px 32px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--bg-header);
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .app-header h1 {
+            font-weight: 500;
+            font-size: 1.6rem;
+            letter-spacing: -0.02em;
+        }
+
+        .badge {
+            background: var(--accent);
+            color: white;
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            border-radius: 100px;
+            font-weight: 500;
+        }
+
+        .theme-toggle {
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1.2rem;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--bg-input);
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        /* Zone de chat (inchangée) */
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--bg-chat);
+            transition: var(--transition);
+        }
+
+        .messages-wrapper {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 0 24px;
+        }
+
+        .message-row {
+            display: flex;
+            width: 100%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .message-row.user {
+            justify-content: flex-end;
+        }
+
+        .message-row.assistant {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 85%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-bubble {
+            padding: 16px 20px;
+            font-size: 1rem;
+            line-height: 1.6;
+            border-radius: 18px;
+            color: var(--text-primary);
+            white-space: pre-wrap;
+            word-break: break-word;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .message-row.user .message-bubble {
+            background-color: var(--bg-user-message);
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-row.assistant .message-bubble {
+            background-color: var(--bg-assistant-message);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            padding-left: 4px;
+        }
+
+        .message-row.user .message-time {
+            text-align: right;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 6px;
+            padding: 16px 0;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background-color: var(--text-muted);
+            border-radius: 50%;
+            display: inline-block;
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+
+        .typing-indicator span:nth-child(1) { animation-delay: 0s; }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.6); opacity: 0.6; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Zone de saisie (inchangée) */
+        .input-area {
+            padding: 24px 32px 32px;
+            border-top: 1px solid var(--border-subtle);
+            background-color: var(--bg-header);
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .input-container {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-subtle);
+            border-radius: 999px;
+            padding: 8px 8px 8px 20px;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+        }
+
+        .input-container:focus-within {
+            box-shadow: 0 4px 28px rgba(59, 130, 246, 0.2);
+            border-color: var(--accent);
+        }
+
+        textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            resize: none;
+            padding: 12px 0;
+            max-height: 150px;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            color: var(--text-primary);
+            outline: none;
+            line-height: 1.5;
+        }
+
+        textarea::placeholder {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .send-btn {
+            background: var(--accent);
+            border: none;
+            color: white;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+        }
+
+        .send-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .send-btn:active {
+            transform: scale(0.96);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        /* Message d'absence de résultat */
+        .no-data {
+            color: #f87171;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 80px;
+            }
+            .sidebar .logo-text, .sidebar .nav-item span:last-child, .sidebar .user-details {
+                opacity: 0;
+                display: none;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .app-header { padding: 16px 20px; }
+            .input-area { padding: 16px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- SIDEBAR avec bouton toggle intégré -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-header">
+            
+                <button class="toggle-btn" id="toggleSidebar">
+                    <span class="material-icons" id="toggleIcon">chevron_left</span>
+                </button>
+            </div>
+        </div>
+  
+        <nav class="nav-menu">
+            <a href="/userdashboard.html" class="nav-item active">
+                <span class="nav-icon material-icons">dashboard</span>
+                <span>Dashboard</span>
+            </a>
+             <a href="/user-admin/assistant.html" class="nav-item">
+                <span class="nav-icon material-icons">assessment</span>
+                <span>Assistant</span>
+            </a>
+            <a href="/user-admin/rapport.html" class="nav-item">
+                <span class="nav-icon material-icons">assessment</span>
+                <span>Rapport</span>
+            </a>
+            <a href="/user-admin/classes.html" class="nav-item">
+                <span class="nav-icon material-icons">school</span>
+                <span>Classes</span>
+            </a>
+            <a href="/user-admin/professeurs.html" class="nav-item">
+                <span class="nav-icon material-icons">person</span>
+                <span>Professeurs</span>
+            </a>
+            <a href="/user-admin/eleves.html" class="nav-item">
+                <span class="nav-icon material-icons">groups</span>
+                <span>Élèves</span>
+            </a>
+            <a href="/user-admin/notes.html" class="nav-item">
+                <span class="nav-icon material-icons">assignment</span>
+                <span>Notes</span>
+            </a>
+            <a href="/user-admin/parametres.html" class="nav-item">
+                <span class="nav-icon material-icons">settings</span>
+                <span>Paramètres</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info" id="userInfo">
+                <div class="user-avatar" id="userAvatar">AD</div>
+                <div class="user-details">
+                   
+                    <div class="user-role" id="userRole">administrateur</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+        <!-- En‑tête original (inchangé) -->
+        <header class="app-header">
+            <div class="header-left">
+             <h1><strong>Zeyn</strong><span style="color:var(--accent);">IA</span></h1>
+            </div>
+            <button class="theme-toggle" id="themeToggle" aria-label="Changer le thème">
+                <i class="fas fa-moon"></i>
+            </button>
+        </header>
+
+        <!-- Zone de chat (inchangée) -->
+        <main class="chat-container" id="chatContainer">
+            <div class="messages-wrapper" id="messagesWrapper">
+                <!-- Les messages sont insérés ici dynamiquement -->
+            </div>
+        </main>
+
+        <!-- Zone de saisie (inchangée) -->
+        <div class="input-area">
+            <div class="input-container">
+                <textarea id="userInput" placeholder="Posez votre question… " rows="1"></textarea>
+                <button class="send-btn" id="sendBtn" disabled><i class="fas fa-arrow-up"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script d'aide (ne pas modifier) -->
+    <script src="aide.assistant.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script type="module">
+        // -------------------------------------------------------------
+        // 1. Import Firebase (v9 modular SDK)
+        // -------------------------------------------------------------
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+import { initSubscriptionChecker } from './subscriptionLimits.js'; // chemin vers ton module
+import { getAuth } from 'https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js';
+        // -------------------------------------------------------------
+        // 2. Configuration Firebase (identique)
+        // -------------------------------------------------------------
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7B-0O9mOdbIDQV-g6hsZx07G2ZvzKoxo",
+            authDomain: "real-educsen.firebaseapp.com",
+            projectId: "real-educsen",
+            storageBucket: "real-educsen.firebasestorage.app",
+            messagingSenderId: "80660233362",
+            appId: "1:80660233362:web:5edf5060254170056eba4b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+try {
+    // Vérifie si l'utilisateur peut faire une requête assistant aujourd'hui
+    const allowed = await subscriptionChecker.checkAndAlert('assistantQuery');
+    if (!allowed) return; // stop si limite atteinte
+} catch (error) {
+    console.error('Erreur limite abonnement:', error);
+    return;
+}
+
+const response = await assistantJs(message, userId, db);
+removeTyping();
+addMessage(response, 'assistant');
+
+        // -------------------------------------------------------------
+        // 3. Import de la fonction principale de l'assistant
+        // -------------------------------------------------------------
+        import assistantJs from './assistant.js';
+
+        // -------------------------------------------------------------
+        // 4. Éléments DOM
+        // -------------------------------------------------------------
+        const messagesWrapper = document.getElementById('messagesWrapper');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatContainer = document.getElementById('chatContainer');
+
+        let isTyping = false;
+        const userId = localStorage.getItem('userId') || 'user-' + Date.now();
+
+
+
+        const subscriptionChecker = initSubscriptionChecker(app); 
+
+
+
+
+
+        // -------------------------------------------------------------
+        // 5. Fonctions d'affichage (inchangées)
+        // -------------------------------------------------------------
+        function addMessage(text, sender) {
+            const row = document.createElement('div');
+            row.classList.add('message-row', sender);
+            const content = document.createElement('div');
+            content.classList.add('message-content');
+            const bubble = document.createElement('div');
+            bubble.classList.add('message-bubble');
+            
+            if (text.includes('Aucune évaluation') || text.includes('Aucune donnée')) {
+                bubble.style.color = '#f87171';
+            } else {
+                bubble.style.color = '';
+            }
+            
+           bubble.innerHTML = text;
+            const time = document.createElement('span');
+            time.classList.add('message-time');
+            const now = new Date();
+            time.textContent = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+            content.appendChild(bubble);
+            content.appendChild(time);
+            row.appendChild(content);
+            messagesWrapper.appendChild(row);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function showTyping() {
+            const indicator = document.createElement('div');
+            indicator.classList.add('message-row', 'assistant');
+            indicator.id = 'typingIndicator';
+            indicator.innerHTML = `<div class="typing-indicator"><span></span><span></span><span></span></div>`;
+            messagesWrapper.appendChild(indicator);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function removeTyping() {
+            const el = document.getElementById('typingIndicator');
+            if (el) el.remove();
+        }
+
+        // -------------------------------------------------------------
+        // 6. Gestion de l'envoi (inchangée)
+        // -------------------------------------------------------------
+        async function handleSend() {
+            const message = userInput.value.trim();
+            if (!message || isTyping) return;
+
+            addMessage(message, 'user');
+            userInput.value = '';
+            userInput.style.height = 'auto';
+            sendBtn.disabled = true;
+
+            isTyping = true;
+            showTyping();
+
+            try {
+                const response = await assistantJs(message, userId, db);
+            removeTyping();
+addMessage(response, 'assistant');
+
+// 🔥 Détection automatique rapport
+if (response.includes("Rapport pédagogique")) {
+    setTimeout(() => {
+        const modal = document.getElementById('reportModal');
+        modal.style.display = 'flex';
+    }, 300);
+}
+            } catch (error) {
+                console.error('Erreur assistant:', error);
+                removeTyping();
+                addMessage("❌ Une erreur technique est survenue. Veuillez réessayer plus tard.", 'assistant');
+            } finally {
+                isTyping = false;
+                sendBtn.disabled = userInput.value.trim() === '';
+            }
+        }
+
+        // -------------------------------------------------------------
+        // 7. Événements (inchangés)
+        // -------------------------------------------------------------
+        userInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+            sendBtn.disabled = this.value.trim() === '' || isTyping;
+        });
+
+        sendBtn.addEventListener('click', handleSend);
+
+        userInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+            }
+        });
+
+        // -------------------------------------------------------------
+        // 8. Message de bienvenue (inchangé)
+        // -------------------------------------------------------------
+        if (messagesWrapper.children.length === 0) {
+            addMessage("Bonjour ! Je suis Zeyna votre assistante pédagogique", 'assistant');
+        }
+
+        // -------------------------------------------------------------
+        // 9. Gestion du thème (inchangée)
+        // -------------------------------------------------------------
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = themeToggle.querySelector('i');
+
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            document.body.classList.add('light-theme');
+            themeIcon.className = 'fas fa-sun';
+        } else {
+            themeIcon.className = 'fas fa-moon';
+        }
+
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('light-theme');
+            const isLight = document.body.classList.contains('light-theme');
+            themeIcon.className = isLight ? 'fas fa-sun' : 'fas fa-moon';
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        });
+
+        // ================= TELECHARGEMENT PDF (corrigé) =================
+        document.getElementById('downloadReportBtn').addEventListener('click', function() {
+            const bubbles = document.querySelectorAll('.message-row.assistant .message-bubble');
+            if (!bubbles.length) return;
+
+            // Prendre la dernière bulle de message assistant (le rapport)
+            const reportElement = bubbles[bubbles.length - 1];
+
+            // Options recommandées pour un rendu PDF fidèle
+            const options = {
+                margin: 0.5, // en pouces
+                filename: 'rapport_scolaire.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Générer le PDF directement à partir de l'élément du rapport
+            html2pdf().set(options).from(reportElement).save();
+
+            // Fermer la modale après le clic
+            document.getElementById('reportModal').style.display = 'none';
+        });
+
+        document.getElementById('closeReportModal').addEventListener('click', function() {
+            document.getElementById('reportModal').style.display = 'none';
+        });
+    </script>
+
+    <!-- Script léger pour la sidebar (toggle et responsive) - n'affecte pas la logique existante -->
+    <script>
+        (function() {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('toggleSidebar');
+            const toggleIcon = document.getElementById('toggleIcon');
+
+            if (toggleBtn && sidebar) {
+                toggleBtn.addEventListener('click', () => {
+                    sidebar.classList.toggle('collapsed');
+                    toggleIcon.textContent = sidebar.classList.contains('collapsed') ? 'chevron_right' : 'chevron_left';
+                });
+
+                function handleResize() {
+                    if (window.innerWidth <= 768) {
+                        sidebar.classList.add('collapsed');
+                        toggleIcon.textContent = 'chevron_right';
+                    } else {
+                        sidebar.classList.remove('collapsed');
+                        toggleIcon.textContent = 'chevron_left';
+                    }
+                }
+                window.addEventListener('resize', handleResize);
+                handleResize();
+            }
+        })();
+    </script>
+    <!-- ================= POPUP TELECHARGEMENT RAPPORT ================= -->
+<div id="reportModal" class="report-modal">
+  <div class="report-modal-content">
+    <span class="report-close" id="closeReportModal">&times;</span>
+    
+    <h2>📄 Télécharger le rapport</h2>
+    <p>Votre rapport est prêt. Voulez-vous le télécharger en PDF ?</p>
+
+    <button id="downloadReportBtn" class="report-download-btn">
+      ⬇ Télécharger le PDF
+    </button>
+  </div>
+</div>
+
+<style>
+.report-modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+}
+
+.report-modal-content {
+  background: white;
+  padding: 30px;
+  width: 400px;
+  border-radius: 10px;
+  text-align: center;
+  position: relative;
+  animation: fadeIn 0.3s ease;
+}
+
+.report-close {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.report-download-btn {
+  margin-top: 20px;
+  padding: 12px 20px;
+  background: #0d47a1;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.report-download-btn:hover {
+  background: #1565c0;
+}
+
+@keyframes fadeIn {
+  from {opacity: 0; transform: scale(0.9);}
+  to {opacity: 1; transform: scale(1);}
+}
+</style>
+</body>
+</html>

@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Educsen — Configuration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- IMPORT FIREBASE SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <style>
+        /* ====== RESET & BASE STYLES ====== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ====== LOADER SECTION (ÉTAPE 1) ====== */
+        .loader-section {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .loader-section.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .background-effect {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            z-index: -1;
+        }
+
+        .loader-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            text-align: center;
+        }
+
+        .logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .logo-icon {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 48px;
+            font-weight: 700;
+            box-shadow: 0 20px 40px rgba(37, 99, 235, 0.15);
+            animation: logoPulse 2s ease-in-out infinite;
+        }
+
+        .logo-text {
+            font-size: 48px;
+            font-weight: 800;
+            color: #1e293b;
+            letter-spacing: -1px;
+            animation: textFadeIn 1s ease-out 0.3s both;
+        }
+
+        .logo-text span {
+            color: #2563eb;
+        }
+
+        .progress-container {
+            width: 300px;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #2563eb, #3b82f6);
+            border-radius: 2px;
+            animation: fillProgress 3s ease-in-out forwards;
+            box-shadow: 0 0 10px rgba(37, 99, 235, 0.3);
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.4) 50%, 
+                transparent 100%);
+            animation: shine 1s ease-in-out infinite;
+        }
+
+        .loading-text {
+            color: #64748b;
+            font-size: 16px;
+            font-weight: 500;
+            animation: fadeIn 1s ease-out 0.5s both;
+        }
+
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: rgba(37, 99, 235, 0.1);
+            border-radius: 50%;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes logoPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes textFadeIn {
+            from { 
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fillProgress {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        /* ====== WELCOME SECTION (ÉTAPE 2) ====== */
+        .welcome-section {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 9998;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .welcome-section.active {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .header-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .header-logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .header-logo-text span {
+            color: #3b82f6;
+        }
+
+        .welcome-content {
+            text-align: center;
+            max-width: 800px;
+            padding: 20px;
+        }
+
+        .welcome-title {
+            font-size: 56px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 20px;
+            line-height: 1.1;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .admin-name {
+            font-size: 20px;
+            color: #64748b;
+            margin-bottom: 60px;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s;
+        }
+
+        .admin-name span {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 18px 60px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease 0.4s, transform 0.8s ease 0.4s;
+        }
+
+        .btn-primary:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .footer-note {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 14px;
+            color: #64748b;
+            font-style: italic;
+        }
+
+        /* ====== ONBOARDING SECTION (ÉTAPE 3) ====== */
+        .onboarding-section {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #f1f5f9;
+            display: none;
+            flex-direction: column;
+            z-index: 9997;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            overflow-y: auto;
+        }
+
+        .onboarding-section.active {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .onboarding-header {
+            background: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .progress-container-onboarding {
+            padding: 0 40px;
+            margin-top: 20px;
+        }
+
+        .progress-bar-onboarding {
+            height: 6px;
+            background-color: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: #3b82f6;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .step-indicator {
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        .onboarding-content {
+            flex: 1;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .step {
+            display: none;
+            background-color: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+            animation: fadeInStep 0.5s ease forwards;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        @keyframes fadeInStep {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step-description {
+            font-size: 16px;
+            color: #64748b;
+            margin-bottom: 30px;
+        }
+
+        .step-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #3b82f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 16px;
+        }
+
+        .form-group.required label::after {
+            content: ' *';
+            color: #ef4444;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background-color: #f8fafc;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            background-color: white;
+        }
+
+        .form-control.error {
+            border-color: #ef4444;
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        /* Subjects Container */
+        .subjects-container {
+            margin-top: 20px;
+        }
+
+        .subject-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .subject-input-group input {
+            flex: 1;
+        }
+
+        .btn-add {
+            background-color: #10b981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-add:hover {
+            background-color: #0da271;
+        }
+
+        .subjects-list {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .subject-tag {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: #f8fafc;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .remove-subject {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Radio Buttons */
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .radio-option {
+            flex: 1;
+        }
+
+        .radio-input {
+            display: none;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            background-color: #f8fafc;
+        }
+
+        .radio-input:checked + .radio-label {
+            border-color: #3b82f6;
+            background-color: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+        }
+
+        .radio-label:hover {
+            border-color: #3b82f6;
+        }
+
+        /* Navigation Buttons */
+        .onboarding-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn-next {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-next:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-finish {
+            background-color: #10b981;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-finish:hover {
+            background-color: #0da271;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        /* ====== RESPONSIVE DESIGN ====== */
+        @media (max-width: 768px) {
+            .logo-icon {
+                width: 100px;
+                height: 100px;
+                font-size: 40px;
+            }
+            
+            .logo-text {
+                font-size: 36px;
+            }
+            
+            .progress-container {
+                width: 250px;
+            }
+            
+            .welcome-title {
+                font-size: 42px;
+            }
+            
+            .admin-name {
+                font-size: 18px;
+                margin-bottom: 40px;
+            }
+            
+            .btn-primary {
+                padding: 16px 40px;
+                font-size: 16px;
+            }
+            
+            .header-container, .onboarding-header {
+                padding: 15px 20px;
+            }
+            
+            .onboarding-content {
+                padding: 20px;
+            }
+            
+            .step {
+                padding: 30px 20px;
+            }
+            
+            .step-title {
+                font-size: 20px;
+            }
+            
+            .radio-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .subject-input-group {
+                flex-direction: column;
+            }
+            
+            .btn-add {
+                padding: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo-icon {
+                width: 80px;
+                height: 80px;
+                font-size: 32px;
+            }
+            
+            .logo-text {
+                font-size: 28px;
+            }
+            
+            .progress-container {
+                width: 200px;
+            }
+            
+            .welcome-title {
+                font-size: 36px;
+            }
+            
+            .admin-name {
+                font-size: 16px;
+                margin-bottom: 40px;
+            }
+            
+            .btn-primary {
+                padding: 14px 30px;
+                width: 100%;
+                max-width: 280px;
+            }
+            
+            .header-container {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+            
+            .onboarding-navigation {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .onboarding-navigation > div {
+                width: 100%;
+                display: flex;
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ====== ÉTAPE 1: LOADER (3 secondes) ====== -->
+    <div class="loader-section" id="loaderSection">
+        <div class="background-effect"></div>
+        <div class="particles" id="particles"></div>
+        
+        <div class="loader-container">
+            <div class="logo">
+                <div class="logo-icon">E</div>
+                <div class="logo-text">Educ<span>sen</span></div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            
+            <div class="loading-text" id="loadingText">Initialisation de votre espace...</div>
+        </div>
+    </div>
+
+    <!-- ====== ÉTAPE 2: ÉCRAN DE BIENVENUE ====== -->
+    <div class="welcome-section" id="welcomeSection">
+        <div class="header-container">
+            <div class="header-logo">
+                <div class="header-logo-icon">
+                    <span class="material-icons">school</span>
+                </div>
+                <div class="header-logo-text">Educ<span>sen</span></div>
+            </div>
+            <button class="btn-secondary" id="backBtn">
+                <span class="material-icons">arrow_back</span>
+                Retour
+            </button>
+        </div>
+
+        <div class="welcome-content">
+            <h1 class="welcome-title">Bienvenue dans votre école</h1>
+            
+            <div class="admin-name">
+                Administrateur : <span id="adminName">M. Ndiaye</span>
+            </div>
+            
+            <button class="btn-primary" id="startOnboardingBtn">Commencer la configuration</button>
+        </div>
+
+        <div class="footer-note">
+            « Un bon dirigeant ne regarde pas des notes. Il regarde des tendances. »
+        </div>
+    </div>
+
+    <!-- ====== ÉTAPE 3: ONBOARDING CONFIGURATION ====== -->
+    <div class="onboarding-section" id="onboardingSection">
+        <div class="onboarding-header">
+            <div class="header-logo">
+                <div class="header-logo-icon">
+                    <span class="material-icons">school</span>
+                </div>
+                <div class="header-logo-text">Educ<span>sen</span></div>
+            </div>
+            <button class="btn-secondary" id="backToWelcomeBtn">
+                <span class="material-icons">arrow_back</span>
+                Retour
+            </button>
+        </div>
+
+        <div class="progress-container-onboarding">
+            <div class="progress-bar-onboarding">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text">
+                <span class="step-indicator" id="stepIndicator">Étape 1 sur 6</span>
+                <span id="stepTitle">Nom de l'école</span>
+            </div>
+        </div>
+
+        <div class="onboarding-content">
+            <!-- Étape 1: Nom de l'école -->
+            <div class="step active" id="step1">
+                <div class="step-title">
+                    <div class="step-icon">
+                        <span class="material-icons">school</span>
+                    </div>
+                    Nom de votre école
+                </div>
+                <p class="step-description">
+                    Entrez le nom officiel de votre établissement scolaire.
+                </p>
+                <div class="form-group required">
+                    <label for="schoolName">Nom de l'école</label>
+                    <input type="text" id="schoolName" class="form-control" placeholder="Ex: École Supérieure Excellence" required>
+                    <div class="error-message" id="schoolNameError">Veuillez entrer le nom de votre école</div>
+                </div>
+            </div>
+
+            <!-- Étape 2: Année scolaire -->
+            <div class="step" id="step2">
+                <div class="step-title">
+                    <div class="step-icon">
+                        <span class="material-icons">calendar_today</span>
+                    </div>
+                    Année scolaire
+                </div>
+                <p class="step-description">
+                    Définissez l'année scolaire en cours.
+                </p>
+                <div class="form-group required">
+                    <label for="schoolYear">Année scolaire</label>
+                    <input type="text" id="schoolYear" class="form-control" placeholder="Ex: 2025-2026" required>
+                    <div class="error-message" id="schoolYearError">Veuillez entrer l'année scolaire (format: 2025-2026)</div>
+                </div>
+            </div>
+
+            <!-- Étape 3: Nombre de classes -->
+            <div class="step" id="step3">
+                <div class="step-title">
+                    <div class="step-icon">
+                        <span class="material-icons">groups</span>
+                    </div>
+                    Nombre de classes
+                </div>
+                <p class="step-description">
+                    Combien de classes avez-vous dans votre établissement ?
+                </p>
+                <div class="form-group required">
+                    <label for="classCount">Nombre de classes</label>
+                    <input type="number" id="classCount" class="form-control" min="1" max="50" placeholder="Ex: 12" required>
+                    <div class="error-message" id="classCountError">Veuillez entrer un nombre valide (1-50)</div>
+                </div>
+            </div>
+
+            <!-- Étape 4: Matières enseignées -->
+            <div class="step" id="step4">
+                <div class="step-title">
+                    <div class="step-icon">
+                        <span class="material-icons">menu_book</span>
+                    </div>
+                    Matières enseignées
+                </div>
+                <p class="step-description">
+                    Ajoutez les matières enseignées dans votre école. Vous pourrez en ajouter d'autres plus tard.
+                </p>
+                <div class="form-group">
+                    <label for="subjectInput">Ajouter une matière</label>
+                    <div class="subject-input-group">
+                        <input type="text" id="subjectInput" class="form-control" placeholder="Ex: Mathématiques">
+                        <button type="button" class="btn-add" id="addSubjectBtn">
+                            <span class="material-icons">add</span> Ajouter
+                        </button>
+                    </div>
+                    <div class="error-message" id="subjectError">Veuillez ajouter au moins une matière</div>
+                </div>
+                
+                <div class="subjects-container">
+                    <div class="subjects-list" id="subjectsList"></div>
+                </div>
+            </div>
+
+            <!-- Étape 5: Nombre de professeurs -->
+            <div class="step" id="step5">
+                <div class="step-title">
+                    <div class="step-icon">
+                        <span class="material-icons">person</span>
+                    </div>
+                    Nombre de professeurs
+                </div>
+                <p class="step-description">
+                    Combien de professeurs enseignent dans votre établissement ?
+                </p>
+                <div class="form-group required">
+                    <label for="teacherCount">Nombre de professeurs</label>
+                    <input type="number" id="teacherCount" class="form-control" min="1" max="100" placeholder="Ex: 24" required>
+                    <div class="error-message" id="teacherCountError">Veuillez entrer un nombre valide (1-100)</div>
+                </div>
+            </div>
+
+            <!-- Étape 6: Système de notation -->
+            <div class="step" id="step6">
+                <div class="step-title">
+                    <div class="step-icon">
+                        <span class="material-icons">grade</span>
+                    </div>
+                    Système de notation
+                </div>
+                <p class="step-description">
+                    Choisissez le système de notation utilisé dans votre établissement.
+                </p>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="grading20" name="gradingSystem" class="radio-input" value="20" checked>
+                        <label for="grading20" class="radio-label">
+                            Notation sur 20
+                        </label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="grading60" name="gradingSystem" class="radio-input" value="60">
+                        <label for="grading60" class="radio-label">
+                            Notation sur 60
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="onboarding-navigation">
+                <button class="btn-secondary" id="prevBtn" disabled>
+                    <span class="material-icons">arrow_back</span>
+                    Retour
+                </button>
+                
+                <button class="btn-next" id="nextStepBtn">
+                    Suivant
+                    <span class="material-icons">arrow_forward</span>
+                </button>
+                
+                <button class="btn-finish" id="finishBtn" style="display: none;">
+                    <span class="material-icons">check</span>
+                    Terminer
+                </button>
+            </div>
+        </div>
+    </div>
+
+     // ====== INITIALISATION FIREBASE ======
+const firebaseConfig = {
+    apiKey: "AIzaSyD7B-0O9mOdbIDQV-g6hsZx07G2ZvzKoxo",
+    authDomain: "real-educsen.firebaseapp.com",
+    projectId: "real-educsen",
+    storageBucket: "real-educsen.firebasestorage.app",
+    messagingSenderId: "80660233362",
+    appId: "1:80660233362:web:5edf5060254170056eba4b",
+    measurementId: "G-23J21ST36C"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// ====== VARIABLES GLOBALES ======
+let currentStep = 1;
+const totalSteps = 6;
+let schoolData = {
+    name: '',
+    schoolYear: '',
+    classCount: 0,
+    subjects: ['Mathématiques', 'Français', 'Anglais', 'Histoire-Géographie', 'SVT', 'Physique-Chimie'],
+    teacherCount: 0,
+    gradingSystem: '20'
+};
+
+// ====== LOADER ======
+function createParticles() {
+    const particlesContainer = document.getElementById('particles');
+    for (let i = 0; i < 15; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.top = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 3 + 's';
+        particle.style.opacity = Math.random() * 0.2 + 0.1;
+        particlesContainer.appendChild(particle);
+    }
+}
+
+function updateLoadingText() {
+    const messages = [
+        "Initialisation de votre espace...",
+        "Préparation des outils pédagogiques...",
+        "Chargement de l'interface...",
+        "Presque terminé..."
+    ];
+    const loadingText = document.getElementById('loadingText');
+    let index = 0;
+    return setInterval(() => {
+        index = (index + 1) % messages.length;
+        loadingText.style.opacity = '0';
+        setTimeout(() => {
+            loadingText.textContent = messages[index];
+            loadingText.style.transition = 'opacity 0.3s ease';
+            loadingText.style.opacity = '1';
+        }, 100);
+    }, 800);
+}
+
+function goToWelcomeScreen() {
+    setTimeout(() => {
+        document.getElementById('loaderSection').classList.add('hidden');
+        setTimeout(() => {
+            document.getElementById('welcomeSection').classList.add('active');
+            animateWelcomeScreen();
+        }, 500);
+    }, 3000);
+}
+
+// ====== ÉCRAN DE BIENVENUE ======
+function animateWelcomeScreen() {
+    const title = document.querySelector('.welcome-title');
+    const adminName = document.querySelector('.admin-name');
+    const btnStart = document.querySelector('#startOnboardingBtn');
+
+    setTimeout(() => {
+        title.style.opacity = '1';
+        title.style.transform = 'translateY(0)';
+        setTimeout(() => {
+            adminName.style.opacity = '1';
+            adminName.style.transform = 'translateY(0)';
+            setTimeout(() => {
+                btnStart.style.opacity = '1';
+                btnStart.style.transform = 'translateY(0)';
+            }, 200);
+        }, 200);
+    }, 300);
+}
+
+// ====== ONBOARDING ======
+function initOnboarding() {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextStepBtn');
+    const finishBtn = document.getElementById('finishBtn');
+    const addSubjectBtn = document.getElementById('addSubjectBtn');
+    const subjectInput = document.getElementById('subjectInput');
+
+    prevBtn.addEventListener('click', goToPrevStep);
+    nextBtn.addEventListener('click', goToNextStep);
+    finishBtn.addEventListener('click', finishOnboarding);
+
+    addSubjectBtn.addEventListener('click', addSubject);
+    subjectInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addSubject();
+        }
+    });
+
+    // Ajouter les matières par défaut à l'interface
+    schoolData.subjects.forEach(subject => addSubjectToUI(subject));
+
+    // Navigation clavier
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            if (currentStep < totalSteps) goToNextStep();
+            else finishOnboarding();
+        }
+    });
+}
+
+function startOnboarding() {
+    document.getElementById('welcomeSection').classList.remove('active');
+    setTimeout(() => {
+        document.getElementById('onboardingSection').classList.add('active');
+        updateProgress();
+        updateStepIndicator();
+    }, 300);
+}
+
+function goToNextStep() {
+    if (!validateCurrentStep()) return;
+    saveCurrentStepData();
+    if (currentStep < totalSteps) {
+        hideStep(currentStep);
+        currentStep++;
+        showStep(currentStep);
+        updateNavigationButtons();
+        updateProgress();
+        updateStepIndicator();
+    }
+}
+
+function goToPrevStep() {
+    if (currentStep > 1) {
+        hideStep(currentStep);
+        currentStep--;
+        showStep(currentStep);
+        updateNavigationButtons();
+        updateProgress();
+        updateStepIndicator();
+    }
+}
+
+function showStep(stepNumber) {
+    const stepElement = document.getElementById(`step${stepNumber}`);
+    if (stepElement) {
+        stepElement.classList.add('active');
+        const firstInput = stepElement.querySelector('input, select, textarea');
+        if (firstInput) setTimeout(() => firstInput.focus(), 300);
+    }
+}
+
+function hideStep(stepNumber) {
+    const stepElement = document.getElementById(`step${stepNumber}`);
+    if (stepElement) stepElement.classList.remove('active');
+}
+
+function validateCurrentStep() {
+    let isValid = true;
+    switch (currentStep) {
+        case 1:
+            const schoolName = document.getElementById('schoolName').value.trim();
+            const schoolNameError = document.getElementById('schoolNameError');
+            if (!schoolName) {
+                schoolNameError.style.display = 'block';
+                document.getElementById('schoolName').classList.add('error');
+                isValid = false;
+            } else {
+                schoolNameError.style.display = 'none';
+                document.getElementById('schoolName').classList.remove('error');
+            }
+            break;
+        case 2:
+            const schoolYear = document.getElementById('schoolYear').value.trim();
+            const schoolYearError = document.getElementById('schoolYearError');
+            const yearPattern = /^\d{4}-\d{4}$/;
+            if (!schoolYear || !yearPattern.test(schoolYear)) {
+                schoolYearError.style.display = 'block';
+                document.getElementById('schoolYear').classList.add('error');
+                isValid = false;
+            } else {
+                schoolYearError.style.display = 'none';
+                document.getElementById('schoolYear').classList.remove('error');
+            }
+            break;
+        case 3:
+            const classCount = parseInt(document.getElementById('classCount').value);
+            const classCountError = document.getElementById('classCountError');
+            if (!classCount || classCount < 1 || classCount > 50) {
+                classCountError.style.display = 'block';
+                document.getElementById('classCount').classList.add('error');
+                isValid = false;
+            } else {
+                classCountError.style.display = 'none';
+                document.getElementById('classCount').classList.remove('error');
+            }
+            break;
+        case 4:
+            if (schoolData.subjects.length === 0) {
+                document.getElementById('subjectError').style.display = 'block';
+                isValid = false;
+            }
+            break;
+        case 5:
+            const teacherCount = parseInt(document.getElementById('teacherCount').value);
+            const teacherCountError = document.getElementById('teacherCountError');
+            if (!teacherCount || teacherCount < 1 || teacherCount > 100) {
+                teacherCountError.style.display = 'block';
+                document.getElementById('teacherCount').classList.add('error');
+                isValid = false;
+            } else {
+                teacherCountError.style.display = 'none';
+                document.getElementById('teacherCount').classList.remove('error');
+            }
+            break;
+    }
+    return isValid;
+}
+
+function saveCurrentStepData() {
+    switch (currentStep) {
+        case 1: schoolData.name = document.getElementById('schoolName').value.trim(); break;
+        case 2: schoolData.schoolYear = document.getElementById('schoolYear').value.trim(); break;
+        case 3: schoolData.classCount = parseInt(document.getElementById('classCount').value); break;
+        case 5: schoolData.teacherCount = parseInt(document.getElementById('teacherCount').value); break;
+        case 6:
+            const selectedGrading = document.querySelector('input[name="gradingSystem"]:checked');
+            schoolData.gradingSystem = selectedGrading ? selectedGrading.value : '20';
+            break;
+    }
+}
+
+function updateNavigationButtons() {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextStepBtn');
+    const finishBtn = document.getElementById('finishBtn');
+
+    prevBtn.disabled = currentStep === 1;
+    if (currentStep === totalSteps) {
+        nextBtn.style.display = 'none';
+        finishBtn.style.display = 'flex';
+    } else {
+        nextBtn.style.display = 'flex';
+        finishBtn.style.display = 'none';
+    }
+}
+
+function updateProgress() {
+    const progressFill = document.getElementById('progressFill');
+    const percentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
+    progressFill.style.width = `${percentage}%`;
+}
+
+function updateStepIndicator() {
+    const stepIndicator = document.getElementById('stepIndicator');
+    const stepTitle = document.getElementById('stepTitle');
+
+    stepIndicator.textContent = `Étape ${currentStep} sur ${totalSteps}`;
+    const titles = {
+        1: "Nom de l'école",
+        2: "Année scolaire",
+        3: "Nombre de classes",
+        4: "Matières enseignées",
+        5: "Nombre de professeurs",
+        6: "Système de notation"
+    };
+    stepTitle.textContent = titles[currentStep];
+}
+
+// ====== GESTION DES MATIÈRES ======
+function addSubject() {
+    const subjectInput = document.getElementById('subjectInput');
+    const subject = subjectInput.value.trim();
+    if (subject && !schoolData.subjects.includes(subject)) {
+        schoolData.subjects.push(subject);
+        addSubjectToUI(subject);
+        subjectInput.value = '';
+        document.getElementById('subjectError').style.display = 'none';
+    }
+}
+
+function addSubjectToUI(subject) {
+    const subjectsList = document.getElementById('subjectsList');
+    const subjectTag = document.createElement('div');
+    subjectTag.className = 'subject-tag';
+    subjectTag.innerHTML = `${subject} <button type="button" class="remove-subject" data-subject="${subject}"><span class="material-icons">close</span></button>`;
+    subjectsList.appendChild(subjectTag);
+
+    subjectTag.querySelector('.remove-subject').addEventListener('click', function() {
+        schoolData.subjects = schoolData.subjects.filter(s => s !== subject);
+        subjectTag.remove();
+    });
+}
+
+// ====== FIN DE L'ONBOARDING ======
+async function finishOnboarding() {
+    if (!validateCurrentStep()) return;
+    saveCurrentStepData();
+
+    const finishBtn = document.getElementById('finishBtn');
+    finishBtn.disabled = true;
+    finishBtn.innerHTML = '<span class="material-icons">sync</span> Enregistrement...';
+
+    try {
+        const user = auth.currentUser;
+        if (!user) throw new Error('Aucun utilisateur connecté.');
+
+        const schoolId = localStorage.getItem('schoolId') || `school_${Date.now()}`;
+        const codeSecret = localStorage.getItem('codeSecret') || Math.random().toString(36).slice(2,8).toUpperCase();
+        localStorage.setItem('schoolId', schoolId);
+        localStorage.setItem('codeSecret', codeSecret);
+        localStorage.setItem('schoolName', schoolData.name);
+
+        const userData = {
+            uid: user.uid,
+            email: user.email,
+            schoolId,
+            schoolName: schoolData.name,
+            codeSecret,
+            role: "ADMIN",
+            status: "ACTIVE",
+            onboardingCompleted: true,
+            schoolData,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        await db.collection('users').doc(user.uid).set(userData, { merge: true });
+        localStorage.setItem('schoolData', JSON.stringify(schoolData));
+
+        window.location.href = "dashboard.html";
+
+    } catch (error) {
+        console.error(error);
+        alert("Erreur : " + error.message);
+        finishBtn.disabled = false;
+        finishBtn.innerHTML = '<span class="material-icons">check</span> Terminer';
+    }
+}
+
+// ====== INITIALISATION DE LA PAGE ======
+document.addEventListener('DOMContentLoaded', () => {
+    createParticles();
+    updateLoadingText();
+    goToWelcomeScreen();
+
+    document.getElementById('startOnboardingBtn').addEventListener('click', startOnboarding);
+    document.getElementById('backBtn').addEventListener('click', () => window.history.back());
+    document.getElementById('backToWelcomeBtn').addEventListener('click', () => {
+        document.getElementById('onboardingSection').classList.remove('active');
+        document.getElementById('welcomeSection').classList.add('active');
+    });
+
+    initOnboarding();
+});
+
+</body>
+</html>
+
+</body>
+</html>

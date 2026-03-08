@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion en cours · ÉducSen</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #f6f9fc 0%, #edf2f7 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+        .container {
+            max-width: 480px;
+            width: 100%;
+        }
+        .card {
+            background: white;
+            border-radius: 32px;
+            padding: 2.5rem 2rem;
+            box-shadow: 0 20px 35px -8px rgba(0,20,30,0.15);
+            text-align: center;
+        }
+        h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: #0a2e4a;
+            margin-bottom: 1rem;
+        }
+        .spinner {
+            display: inline-block;
+            width: 3rem;
+            height: 3rem;
+            border: 4px solid rgba(37,99,235,0.2);
+            border-radius: 50%;
+            border-top-color: #2563eb;
+            animation: spin 1s linear infinite;
+            margin: 2rem 0;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .message {
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 14px;
+            font-weight: 500;
+        }
+        .error {
+            background: #fff5f5;
+            color: #c53030;
+            border-left: 4px solid #c53030;
+        }
+        .success {
+            background: #e6f7e6;
+            color: #1e7a44;
+        }
+        .btn {
+            display: inline-block;
+            background: #1e4c6b;
+            color: white;
+            font-weight: 600;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            margin-top: 1rem;
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>🔐 Connexion sécurisée</h1>
+            <div id="status">
+                <div class="spinner"></div>
+                <p>Vérification du lien, veuillez patienter...</p>
+            </div>
+            <div id="messageBox" class="message hidden"></div>
+            <a href="/connexion.html" id="retryBtn" class="btn hidden">Retour à la connexion</a>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+        import { getAuth, isSignInWithEmailLink, signInWithEmailLink } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7B-0O9mOdbIDQV-g6hsZx07G2ZvzKoxo",
+            authDomain: "real-educsen.firebaseapp.com",
+            projectId: "real-educsen",
+            storageBucket: "real-educsen.firebasestorage.app",
+            messagingSenderId: "80660233362",
+            appId: "1:80660233362:web:5edf5060254170056eba4b"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Éléments DOM
+        const statusDiv = document.getElementById('status');
+        const messageBox = document.getElementById('messageBox');
+        const retryBtn = document.getElementById('retryBtn');
+
+        // Fonction d'affichage des messages
+        function showMessage(text, type) {
+            statusDiv.classList.add('hidden');
+            messageBox.textContent = text;
+            messageBox.className = `message ${type}`;
+            messageBox.classList.remove('hidden');
+            if (type === 'error') retryBtn.classList.remove('hidden');
+        }
+
+        // Récupérer l'email stocké
+        let email = localStorage.getItem('emailForSignIn');
+
+        // Vérifier si on a un lien valide
+        if (!isSignInWithEmailLink(auth, window.location.href)) {
+            showMessage('Lien de connexion invalide ou expiré.', 'error');
+        } else if (!email) {
+            // Si l'email n'est pas en localStorage, on demande à l'utilisateur
+            showMessage('Aucun email trouvé. Veuillez recommencer.', 'error');
+        } else {
+            // Finaliser la connexion
+            signInWithEmailLink(auth, email, window.location.href)
+                .then((result) => {
+                    // Succès : effacer l'email stocké
+                    localStorage.removeItem('emailForSignIn');
+                    // Rediriger vers codesecretuser.html
+                    window.location.href = '/codesecretuser.html';
+                })
+                .catch((error) => {
+                    console.error('Erreur de connexion :', error);
+                    let message = 'Erreur lors de la connexion.';
+                    if (error.code === 'auth/invalid-action-code') {
+                        message = 'Lien expiré ou déjà utilisé.';
+                    }
+                    showMessage(message, 'error');
+                });
+        }
+    </script>
+</body>
+</html>
