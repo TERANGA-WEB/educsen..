@@ -311,7 +311,7 @@ Tapez le chiffre correspondant (1-4) ou "annuler" pour quitter.`;
 
 async function getAllClasses(db) {
   if (classesCache && Date.now() - classesCacheTime < DATA_CACHE_TTL) return classesCache;
-  const snap = await getDocs(collection(db, 'classes'));
+const snap = await getDocs(query(collection(db, 'classes'), where('createdBy', '==', userId)));
   classesCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   classesCacheTime = Date.now();
   return classesCache;
@@ -963,4 +963,5 @@ async function handleStudentReport(db, searchTerm) {
     console.error("Erreur dans handleStudentReport:", error);
     return "❌ Erreur lors de la génération du rapport individuel.";
   }
+
 }
