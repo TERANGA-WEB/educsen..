@@ -1,7 +1,7 @@
 {
-  "name": "Nom Complet de Votre App",
+  "name": "Educsen IA",
   "short_name": "Nom Court",
-  "description": "Une description de votre application",
+  "description": " Edusen est une application web de gestion scolaire qui permet aux établissements de gérer les classes, les élèves, les évaluations et les notes, puis de générer automatiquement les bulletins scolaires en PDF pour toute une classe.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
