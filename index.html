@@ -621,11 +621,10 @@
                 <!-- La section motivation-text a été supprimée comme demandé -->
                 
                 <div class="button-group">
-                    <a href="codesecretuser.html" class="btn btn-secondary">
-                        <i class="fas fa-sign-in-alt btn-icon"></i>
-                        Connexion
-                    </a>
-                    
+                   <a href="codesecretuser.html" id="btnConnexion" class="btn btn-secondary">
+    <i class="fas fa-sign-in-alt btn-icon"></i>
+    Connexion
+</a>
                     <a href="inscription.html" class="btn btn-primary">
                         <i class="fas fa-play-circle btn-icon"></i>
                         Commencer
@@ -701,7 +700,16 @@
             const closeModal = document.getElementById('closeModal');
             const mobileMenuBtn = document.getElementById('mobileMenuBtn');
             const navContainer = document.getElementById('navContainer');
-            
+            // Vérifier si l'utilisateur est déjà connu
+const btnConnexion = document.getElementById('btnConnexion');
+const userEmail = localStorage.getItem('userEmail');
+const userUid   = localStorage.getItem('userUid');
+
+if (userEmail && userUid) {
+    btnConnexion.href = 'codesecretuser.html'; // déjà connu → code secret
+} else {
+    btnConnexion.href = 'connexion.html'; // inconnu → email magic link
+}
             if (mobileMenuBtn && navContainer) {
                 mobileMenuBtn.addEventListener('click', function() {
                     navContainer.classList.toggle('active');
