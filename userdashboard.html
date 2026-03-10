@@ -1047,7 +1047,7 @@
     <script type="module">
         // ---------- IMPORTS FIREBASE ----------
         import { initializeApp } from 'firebase/app';
-        import { getFirestore, collection, getDocs } from 'firebase/firestore';
+  import { getFirestore, collection, getDocs, query, where } from 'firebase/firestore';
 
         // ---------- CONFIGURATION FIREBASE ----------
         const firebaseConfig = {
@@ -1103,11 +1103,14 @@
         // ---------- CHARGEMENT DES DONNÉES ----------
         async function loadDashboardData() {
             try {
-                const classesSnapshot = await getDocs(collection(db, 'classes'));
+const q = query(collection(db, 'classes'), where('createdBy', '==', user.uid));
+const classesSnapshot = await getDocs(q);
+
                 const classes = classesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 const totalClasses = classes.length;
 
-                const professeursSnapshot = await getDocs(collection(db, 'professeurs'));
+               const qProf = query(collection(db, 'professeurs'), where('createdBy', '==', user.uid));
+const professeursSnapshot = await getDocs(qProf);
                 const professeurs = professeursSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 const totalProfesseurs = professeurs.length;
 
@@ -1290,4 +1293,5 @@
         });
     </script>
 </body>
+
 </html>
