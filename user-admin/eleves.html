@@ -1072,8 +1072,7 @@
             classesGrid.innerHTML = '';
 
             try {
-                const classesRef = collection(db, 'classes');
-               const classesRef = collection(db, 'classes');
+ const classesRef = collection(db, 'classes');
 const q = query(classesRef, where('createdBy', '==', user.uid));
 const snapshot = await getDocs(q);
                 const classes = snapshot.docs.map(doc => ({
@@ -1180,3 +1179,4 @@ const snapshot = await getDocs(q);
 </body>
 
 </html>
+
