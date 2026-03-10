@@ -129,14 +129,19 @@
             // Si l'email n'est pas en localStorage, on demande à l'utilisateur
             showMessage('Aucun email trouvé. Veuillez recommencer.', 'error');
         } else {
+
+
             // Finaliser la connexion
             signInWithEmailLink(auth, email, window.location.href)
-                .then((result) => {
-                    // Succès : effacer l'email stocké
-                    localStorage.removeItem('emailForSignIn');
-                    // Rediriger vers codesecretuser.html
-                    window.location.href = '/codesecretuser.html';
-                })
+              .then((result) => {
+
+    localStorage.setItem('userEmail', result.user.email);
+    localStorage.setItem('userUid', result.user.uid);
+    localStorage.removeItem('emailForSignIn');
+    window.location.href = '/codesecretuser.html';
+})
+
+
                 .catch((error) => {
                     console.error('Erreur de connexion :', error);
                     let message = 'Erreur lors de la connexion.';
