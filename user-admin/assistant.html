@@ -645,7 +645,8 @@ addMessage(response, 'assistant');
         const chatContainer = document.getElementById('chatContainer');
 
         let isTyping = false;
-        const userId = localStorage.getItem('userId') || 'user-' + Date.now();
+     const userId = localStorage.getItem('userUid');
+
 
 
 
@@ -903,4 +904,5 @@ if (response.includes("Rapport pédagogique")) {
 }
 </style>
 </body>
+
 </html>
