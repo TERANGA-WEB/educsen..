@@ -1073,7 +1073,9 @@
 
             try {
                 const classesRef = collection(db, 'classes');
-                const snapshot = await getDocs(classesRef);
+               const classesRef = collection(db, 'classes');
+const q = query(classesRef, where('createdBy', '==', user.uid));
+const snapshot = await getDocs(q);
                 const classes = snapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
@@ -1176,4 +1178,5 @@
         loadClasses();
     </script>
 </body>
+
 </html>
