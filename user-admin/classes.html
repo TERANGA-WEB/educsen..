@@ -766,7 +766,7 @@
 
             try {
                 const classesRef = collection(db, 'classes');
-                const q = query(classesRef, orderBy('createdAt', 'desc'));
+                const q = query(classesRef, orderBy('createdAt', 'desc'));const q = query(classesRef, where('createdBy', '==', currentUser.uid), orderBy('createdAt', 'desc'));
 
                 const snapshot = await getDocs(q);
                 
@@ -882,4 +882,5 @@
         handleResize();
     </script>
 </body>
+
 </html>
