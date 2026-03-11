@@ -1,3 +1,4 @@
+
 // assistant.js – Module de recherche de performances (classe, professeur ou élève)
 import {
   collection,
