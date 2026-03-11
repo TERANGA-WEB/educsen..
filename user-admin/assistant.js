@@ -1,4 +1,3 @@
-
 // assistant.js – Module de recherche de performances (classe, professeur ou élève)
 import {
   collection,
@@ -8,19 +7,21 @@ import {
 } from 'https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js';
 
 // -------------------------------------------------------------
-// CONSTANTES ET CACHE
+// CONSTANTES ET CACHE (indexé par userId)
 // -------------------------------------------------------------
-const CACHE_TTL = 5 * 60 * 1000;
 const DATA_CACHE_TTL = 15 * 60 * 1000;
-const MAX_CACHE_SIZE = 100;
+const cacheByUser = new Map();
 
-const cache = new Map();
-
-// Les caches sont maintenant indexés par userId pour éviter les mélanges
-const cacheByUser = new Map(); // clé = userId, valeur = { classes, evals, eleves, timestamps }
-
-const COMMAND_SYNONYMS = ["performance", "perf", "stat"];
-const ELEVE_SYNONYMS = ["eleve", "élève", "notes", "note", "bulletin", "etudiant"];
+function getUserCache(userId) {
+  if (!cacheByUser.has(userId)) {
+    cacheByUser.set(userId, {
+      classes: null, classesCacheTime: 0,
+      evals:   null, evalsCacheTime:   0,
+      eleves:  null, elevesCacheTime:  0,
+    });
+  }
+  return cacheByUser.get(userId);
+}
 
 // ---- Session utilisateur pour le menu interactif ----
 const userSessions = new Map();
@@ -38,29 +39,6 @@ function normalizeString(str) {
     .replace(/\s+/g, ' ');
 }
 
-function setCache(key, data) {
-  if (cache.size >= MAX_CACHE_SIZE) {
-    const oldestKey = Array.from(cache.entries())
-      .sort((a, b) => a[1].timestamp - b[1].timestamp)[0]?.[0];
-    if (oldestKey) cache.delete(oldestKey);
-  }
-  cache.set(key, { data, timestamp: Date.now() });
-}
-
-function getUserCache(userId) {
-  if (!cacheByUser.has(userId)) {
-    cacheByUser.set(userId, {
-      classes: null, classesCacheTime: 0,
-      evals: null,   evalsCacheTime: 0,
-      eleves: null,  elevesCacheTime: 0,
-    });
-  }
-  return cacheByUser.get(userId);
-}
-
-/**
- * Normalise un message utilisateur.
- */
 function normalizeUserMessage(msg) {
   let normalized = msg
     .normalize('NFD')
@@ -68,63 +46,47 @@ function normalizeUserMessage(msg) {
     .toLowerCase();
 
   const synonymMap = {
-    'élève': 'eleve',
-    'étudiant': 'eleve',
-    'etudiant': 'eleve',
-    'notes': 'eleve',
-    'note': 'eleve',
-    'bulletin': 'eleve',
+    'élève': 'eleve', 'étudiant': 'eleve', 'etudiant': 'eleve',
+    'notes': 'eleve', 'note': 'eleve', 'bulletin': 'eleve',
     'prof': 'professeur',
   };
   for (const [word, replacement] of Object.entries(synonymMap)) {
-    const regex = new RegExp(`\\b${word}\\b`, 'gi');
-    normalized = normalized.replace(regex, replacement);
+    normalized = normalized.replace(new RegExp(`\\b${word}\\b`, 'gi'), replacement);
   }
 
   const useless = [
     'quels sont', 'quel est', 'montre moi', 'montre-moi', 'affiche',
     'je veux', 'je voudrais', 'veuillez', 'merci', 's il te plait',
     's il vous plait', 'stp', 'svp', 'donne moi', 'donne-moi',
-    'les', 'la', 'le', 'des', 'de', 'du',
-    'resultats', 'résultats',
+    'les', 'la', 'le', 'des', 'de', 'du', 'resultats', 'résultats',
   ];
   useless.forEach(phrase => {
-    const regex = new RegExp(`\\b${phrase}\\b`, 'gi');
-    normalized = normalized.replace(regex, ' ');
+    normalized = normalized.replace(new RegExp(`\\b${phrase}\\b`, 'gi'), ' ');
   });
 
   normalized = normalized.replace(/\s+/g, ' ').trim();
 
   const targetKeywords = ['eleve', 'classe', 'professeur'];
-  let bestIndex = -1;
-  let bestKeyword = null;
+  let bestIndex = -1, bestKeyword = null;
   for (const kw of targetKeywords) {
     const idx = normalized.indexOf(kw);
     if (idx !== -1 && (bestIndex === -1 || idx < bestIndex)) {
-      bestIndex = idx;
-      bestKeyword = kw;
+      bestIndex = idx; bestKeyword = kw;
     }
   }
-  if (bestKeyword !== null) {
-    normalized = normalized.substring(bestIndex);
-  }
+  if (bestKeyword !== null) normalized = normalized.substring(bestIndex);
 
   return normalized.replace(/\s+/g, ' ').trim();
 }
 
 // -------------------------------------------------------------
-// FONCTION PRINCIPALE — reçoit maintenant userId en paramètre
+// FONCTION PRINCIPALE — userId obligatoire
 // -------------------------------------------------------------
 export default async function assistant(message, userId, db) {
   const rawMessage = message.trim();
 
-  // Vérification défensive
-  if (!userId) {
-    return "❌ Utilisateur non identifié. Veuillez vous reconnecter.";
-  }
-  if (!db) {
-    return "❌ Base de données non disponible. Veuillez recharger la page.";
-  }
+  if (!userId) return "❌ Utilisateur non identifié. Veuillez vous reconnecter.";
+  if (!db)     return "❌ Base de données non disponible. Veuillez recharger la page.";
 
   const normalizedMessage = normalizeUserMessage(rawMessage);
 
@@ -132,22 +94,32 @@ export default async function assistant(message, userId, db) {
   if (normalizedMessage === '/aide' || normalizedMessage === 'aide') {
     return `Commandes disponibles :
 
-// Élève
+// Élève commande
+- <strong>donne moi les notes de</strong> [nom] : Voir les notes et la moyenne d'un élève.
+- <strong>c'est quoi les notes de</strong> [nom] : Voir les notes et la moyenne d'un élève.
+- <strong>je veux les résultats de</strong> [nom] : Voir les notes et la moyenne d'un élève.
 - <strong>eleve</strong> [nom] : Voir les notes et la moyenne d'un élève.
-- <strong>donne moi les notes de</strong> [nom]
-- <strong>je veux les résultats de</strong> [nom]
 
-// Professeur
-- <strong>professeur</strong> [nom] : Stats d'un professeur.
-- <strong>donne moi le bilan du professeur</strong> [nom]
+// Professeur commande
+- <strong>professeur</strong> [nom] : Stats d'un prof par son nom (ex: professeur Amadou Diop).
+- <strong>donne moi le bilan du professeur</strong> [nom] : Voir les notes et la moyenne d'un professeur.
+- <strong>c'est quoi le bilan du professeur</strong> [nom] : Voir les notes et la moyenne d'un professeur.
+- <strong>je veux le bilan du professeur</strong> [nom] : Voir les notes et la moyenne d'un professeur.
+- <strong>affiche les performances du professeur</strong> [nom] : Voir les notes et la moyenne d'un professeur.
 
-// Rapport classe
+// Rapport classe commande
 - <strong>rapport classe</strong> [nom] : Rapport détaillé d'une classe.
-- <strong>montre moi le rapport de la classe</strong> [nom]
+- <strong>montre moi le rapport de la classe</strong> [nom] : Rapport détaillé d'une classe.
+- <strong>je veux voir le bilan de la classe</strong> [nom] : Rapport détaillé d'une classe.
+- <strong>affiche les résultats de la classe</strong> [nom] : Rapport détaillé d'une classe.
+- <strong>donne-moi les performances de la classe</strong> [nom] : Rapport détaillé d'une classe.
 
-// Rapport élève
+// Rapport élève commande
 - <strong>rapport eleve</strong> [nom] : Rapport pédagogique individuel.
-- <strong>montre-moi le rapport de l'élève</strong> [nom]`;
+- <strong>montre-moi le rapport de l'élève</strong> [nom] : Rapport pédagogique individuel.
+- <strong>je veux voir le bilan de l'élève</strong> [nom] : Rapport pédagogique individuel.
+- <strong>affiche les performances de l'élève</strong> [nom] : Rapport pédagogique individuel.
+- <strong>donne moi le suivi scolaire de l'élève</strong> [nom] : Rapport pédagogique individuel.`;
   }
 
   // ---- Détection des commandes par motifs ----
@@ -225,7 +197,6 @@ Tapez le chiffre correspondant (1-4) ou "annuler" pour quitter.`;
     session.waitingFor = 'name';
     session.selectedOption = choice;
     userSessions.set(userId, session);
-
     const prompts = {
       1: "Veuillez entrer le nom de l'élève :",
       2: "Veuillez entrer le nom du professeur :",
@@ -238,21 +209,19 @@ Tapez le chiffre correspondant (1-4) ou "annuler" pour quitter.`;
   if (session.waitingFor === 'name') {
     const name = rawMessage.trim();
     if (!name) return "❌ Le nom ne peut pas être vide. Veuillez réessayer ou tapez 'annuler'.";
-
     let result;
     try {
       switch (session.selectedOption) {
-        case 1: result = await handleStudentSearch(db, name, userId); break;
+        case 1: result = await handleStudentSearch(db, name, userId);   break;
         case 2: result = await handleProfessorByName(db, name, userId); break;
-        case 3: result = await handleClassReport(db, name, userId); break;
-        case 4: result = await handleStudentReport(db, name, userId); break;
+        case 3: result = await handleClassReport(db, name, userId);     break;
+        case 4: result = await handleStudentReport(db, name, userId);   break;
         default: result = "❌ Erreur interne.";
       }
     } catch (error) {
       console.error(error);
       result = "❌ Une erreur est survenue lors du traitement.";
     }
-
     userSessions.delete(userId);
     return result;
   }
@@ -261,15 +230,12 @@ Tapez le chiffre correspondant (1-4) ou "annuler" pour quitter.`;
 }
 
 // -------------------------------------------------------------
-// GESTION DES CACHES — filtrés par userId
+// CACHE — filtré par userId via createdBy
 // -------------------------------------------------------------
-
 async function getAllClasses(db, userId) {
   const uc = getUserCache(userId);
   if (uc.classes && Date.now() - uc.classesCacheTime < DATA_CACHE_TTL) return uc.classes;
-
-  const q = query(collection(db, 'classes'), where('createdBy', '==', userId));
-  const snap = await getDocs(q);
+  const snap = await getDocs(query(collection(db, 'classes'), where('createdBy', '==', userId)));
   uc.classes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   uc.classesCacheTime = Date.now();
   return uc.classes;
@@ -278,9 +244,7 @@ async function getAllClasses(db, userId) {
 async function getAllEvaluations(db, userId) {
   const uc = getUserCache(userId);
   if (uc.evals && Date.now() - uc.evalsCacheTime < DATA_CACHE_TTL) return uc.evals;
-
-  const q = query(collection(db, 'evaluations'), where('createdBy', '==', userId));
-  const snap = await getDocs(q);
+  const snap = await getDocs(query(collection(db, 'evaluations'), where('createdBy', '==', userId)));
   uc.evals = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   uc.evalsCacheTime = Date.now();
   return uc.evals;
@@ -289,74 +253,61 @@ async function getAllEvaluations(db, userId) {
 async function getAllEleves(db, userId) {
   const uc = getUserCache(userId);
   if (uc.eleves && Date.now() - uc.elevesCacheTime < DATA_CACHE_TTL) return uc.eleves;
-
-  const q = query(collection(db, 'eleves'), where('createdBy', '==', userId));
-  const snap = await getDocs(q);
+  const snap = await getDocs(query(collection(db, 'eleves'), where('createdBy', '==', userId)));
   uc.eleves = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   uc.elevesCacheTime = Date.now();
   return uc.eleves;
 }
 
 // -------------------------------------------------------------
-// LOGIQUE ÉLÈVE
+// ÉLÈVE — recherche par nom + notes
 // -------------------------------------------------------------
 async function handleStudentSearch(db, searchTerm, userId) {
   const normalizedSearch = normalizeString(searchTerm);
-
   try {
     const eleves = await getAllEleves(db, userId);
     let foundStudent = null;
-
     for (const eleve of eleves) {
       const prenomNorm = normalizeString(eleve.prenom || '');
       const nomNorm    = normalizeString(eleve.nom    || '');
       const fullName1  = prenomNorm + ' ' + nomNorm;
       const fullName2  = nomNorm + ' ' + prenomNorm;
-
       if (
         fullName1.includes(normalizedSearch) ||
         fullName2.includes(normalizedSearch) ||
         prenomNorm.includes(normalizedSearch) ||
         nomNorm.includes(normalizedSearch)
-      ) {
-        foundStudent = eleve;
-        break;
-      }
+      ) { foundStudent = eleve; break; }
     }
-
     if (!foundStudent) return `😕 Impossible de trouver l'élève "${searchTerm}".`;
 
-    const notesQuery = query(
-      collection(db, 'notes'),
-      where('eleveId', '==', foundStudent.id),
-      where('createdBy', '==', userId)
+    const notesSnap = await getDocs(
+      query(collection(db, 'notes'),
+        where('eleveId', '==', foundStudent.id),
+        where('createdBy', '==', userId)
+      )
     );
-    const notesSnap = await getDocs(notesQuery);
 
     if (notesSnap.empty) {
       return `🎓 <strong>${foundStudent.prenom} ${foundStudent.nom}</strong>\n📭 Aucune note trouvée pour cet élève.`;
     }
 
-    let total = 0, count = 0;
-    let bulletin = [];
-
+    let total = 0, count = 0, bulletin = [];
     notesSnap.forEach(noteDoc => {
-      const noteData = noteDoc.data();
-      const val = Number(noteData.note || noteData.valeur);
-      const matiere = noteData.matiere || "Matière inconnue";
+      const d = noteDoc.data();
+      const val = Number(d.note || d.valeur);
+      const matiere = d.matiere || "Matière inconnue";
       if (!isNaN(val)) {
         bulletin.push(`- <strong>${matiere}</strong> : ${val}/20`);
-        total += val;
-        count++;
+        total += val; count++;
       }
     });
 
-    if (count === 0) {
-      return `🎓 <strong>${foundStudent.prenom} ${foundStudent.nom}</strong>\nAucune note valide trouvée.`;
-    }
+    if (count === 0) return `🎓 <strong>${foundStudent.prenom} ${foundStudent.nom}</strong>\nAucune note valide trouvée pour cet élève.`;
 
     const moyenne = (total / count).toFixed(2);
-    return `🎓 <strong>Bulletin de ${foundStudent.prenom} ${foundStudent.nom}</strong>\n\n` +
+    return `🎓 <strong>Bulletin de ${foundStudent.prenom} ${foundStudent.nom}</strong>\n` +
+           `ID Élève : ${foundStudent.id}\n\n` +
            `${bulletin.join('\n')}\n\n` +
            `📊 <strong>Moyenne Générale : ${moyenne}/20</strong>`;
 
@@ -407,7 +358,6 @@ async function handleProfessorById(db, profId, profNom = null, userId) {
     )
   );
   if (snap.empty) return `👨 Professeur ${profNom || profId} : Aucune évaluation.`;
-
   let sum = 0, count = 0;
   snap.forEach(d => { sum += Number(d.data().moyenneClasse) || 0; count++; });
   const name = profNom || snap.docs[0].data().professeurNom || profId;
@@ -435,94 +385,68 @@ async function handleClassReport(db, classeNom, userId) {
     const classe = classes.find(c => {
       const nomBD   = normalizeString(c.nomClasse || c.classeNom || "");
       const nomUser = normalizeString(classeNom);
-      return (
-        nomBD === nomUser ||
-        nomBD.replace(/\s/g, "") === nomUser.replace(/\s/g, "") ||
-        nomBD.includes(nomUser)
-      );
+      return nomBD === nomUser || nomBD.replace(/\s/g,"") === nomUser.replace(/\s/g,"") || nomBD.includes(nomUser);
     });
-
     if (!classe) return `😕 Classe "${classeNom}" introuvable. Vérifiez le nom.`;
 
     const classeId = classe.id;
     const matieres = classe.matieres || [];
 
-    // Élèves de cette classe
-    const elevesQuery = query(
-      collection(db, 'eleves'),
-      where('classeId', '==', classeId),
-      where('createdBy', '==', userId)
+    const elevesSnap = await getDocs(
+      query(collection(db, 'eleves'),
+        where('classeId', '==', classeId),
+        where('createdBy', '==', userId)
+      )
     );
-    const elevesSnap = await getDocs(elevesQuery);
     const eleves = elevesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (eleves.length === 0) return `📚 Classe <strong>${classeNom}</strong>\nAucun élève inscrit dans cette classe.`;
 
-    if (eleves.length === 0) {
-      return `📚 Classe <strong>${classeNom}</strong>\nAucun élève inscrit dans cette classe.`;
-    }
-
-    // Map evaluations
     const allEvals = await getAllEvaluations(db, userId);
     const evalMap = new Map();
     allEvals.forEach(e => evalMap.set(e.id, e.matiereNom || e.matiere || "Inconnue"));
 
-    // Notes par élève
     const elevesWithNotes = await Promise.all(eleves.map(async (eleve) => {
-      const notesQuery = query(
-        collection(db, 'notes'),
-        where('eleveId', '==', eleve.id),
-        where('createdBy', '==', userId)
+      const notesSnap = await getDocs(
+        query(collection(db, 'notes'),
+          where('eleveId', '==', eleve.id),
+          where('createdBy', '==', userId)
+        )
       );
-      const notesSnap = await getDocs(notesQuery);
       let notes = [], total = 0, count = 0;
-
       notesSnap.forEach(doc => {
-        const noteData = doc.data();
-        const val = Number(noteData.note || noteData.valeur);
+        const d = doc.data();
+        const val = Number(d.note || d.valeur);
         if (!isNaN(val)) {
-          const matiere = evalMap.get(noteData.evaluationId) || noteData.matiere || "Inconnue";
+          const matiere = evalMap.get(d.evaluationId) || d.matiere || "Inconnue";
           notes.push({ matiere, valeur: val });
-          total += val;
-          count++;
+          total += val; count++;
         }
       });
-
-      return {
-        id: eleve.id,
-        prenom: eleve.prenom || "",
-        nom: eleve.nom || "",
-        notes,
-        moyenne: count > 0 ? total / count : 0,
-        nbNotes: count
-      };
+      return { id: eleve.id, prenom: eleve.prenom||"", nom: eleve.nom||"", notes, moyenne: count>0 ? total/count : 0, nbNotes: count };
     }));
 
     const elevesAvecNotes = elevesWithNotes.filter(e => e.nbNotes > 0);
-    if (elevesAvecNotes.length === 0) {
-      return `📚 Classe <strong>${classeNom}</strong>\nAucun élève n'a de notes enregistrées.`;
-    }
+    if (elevesAvecNotes.length === 0) return `📚 Classe <strong>${classeNom}</strong>\nAucun élève n'a de notes enregistrées.`;
 
-    // Statistiques globales
     const moyennesEleves = elevesAvecNotes.map(e => e.moyenne);
-    const classeMoyenne  = moyennesEleves.reduce((a, b) => a + b, 0) / moyennesEleves.length;
+    const classeMoyenne  = moyennesEleves.reduce((a,b) => a+b, 0) / moyennesEleves.length;
     const faible = moyennesEleves.filter(m => m < 10).length;
     const moyen  = moyennesEleves.filter(m => m >= 10 && m <= 12).length;
     const fort   = moyennesEleves.filter(m => m > 12).length;
 
-    const sorted  = [...elevesAvecNotes].sort((a, b) => b.moyenne - a.moyenne);
+    const sorted  = [...elevesAvecNotes].sort((a,b) => b.moyenne - a.moyenne);
     const top3    = sorted.slice(0, 3);
     const bottom3 = sorted.slice(-3).reverse();
 
-    // Stats par matière
     const matiereMap = new Map();
     elevesAvecNotes.forEach(eleve => {
       eleve.notes.forEach(n => {
         if (!matiereMap.has(n.matiere)) {
           const matInfo = matieres.find(m => m.nom === n.matiere || m.matiereNom === n.matiere);
-          matiereMap.set(n.matiere, { total: 0, count: 0, professeur: matInfo?.professeurNom || "Inconnu" });
+          matiereMap.set(n.matiere, { total:0, count:0, professeur: matInfo?.professeurNom || "Inconnu" });
         }
         const entry = matiereMap.get(n.matiere);
-        entry.total += n.valeur;
-        entry.count++;
+        entry.total += n.valeur; entry.count++;
       });
     });
 
@@ -530,83 +454,124 @@ async function handleClassReport(db, classeNom, userId) {
     for (const [matiere, data] of matiereMap.entries()) {
       const moy = data.total / data.count;
       matiereStats.push({
-        matiere,
-        moyenne: moy.toFixed(2),
+        matiere, moyenne: moy.toFixed(2),
         classement: moy < 10 ? "Faible" : moy <= 12 ? "Suffisant" : "Très bien",
         professeur: data.professeur
       });
     }
 
-    const generateBar = (value, max = 20, length = 20) => {
-      const filled = Math.round((value / max) * length);
-      return '█'.repeat(Math.max(0, filled)) + '░'.repeat(Math.max(0, length - filled));
+    const generateBar = (value, max=20, length=20) => {
+      const filled = Math.round((value/max)*length);
+      return '█'.repeat(Math.max(0,filled)) + '░'.repeat(Math.max(0,length-filled));
     };
 
     let rapport = `📋 <strong>Rapport pédagogique – Classe ${classeNom}</strong>\n\n`;
-
-    let indiceGlobal = classeMoyenne < 10 ? "⚠️ Niveau critique" : classeMoyenne <= 12 ? "📈 Niveau intermédiaire" : "🏆 Niveau d'excellence";
+    const indiceGlobal = classeMoyenne < 10 ? "⚠️ Niveau critique" : classeMoyenne <= 12 ? "📈 Niveau intermédiaire" : "🏆 Niveau d'excellence";
     rapport += `<strong>${indiceGlobal}</strong> – `;
 
-    const introFaible    = [
+    const introFaible = [
       () => `La classe ${classeNom} présente des résultats préoccupants, avec une moyenne générale de ${classeMoyenne.toFixed(2)}/20. `,
-      () => `Les performances globales sont alarmantes : seuls ${fort} élèves dépassent la moyenne sur ${elevesAvecNotes.length} évalués. `,
+      () => `Les performances globales de la classe sont alarmantes : seuls ${fort} élèves dépassent la moyenne sur ${elevesAvecNotes.length} évalués. `,
+      () => `L'analyse révèle une situation critique : la moyenne de classe s'établit à ${classeMoyenne.toFixed(2)}/20, bien en deçà des attentes. `
     ];
-    const introMoyen     = [
-      () => `La classe ${classeNom} obtient une moyenne générale de ${classeMoyenne.toFixed(2)}/20, un niveau correct mais perfectible. `,
-      () => `Avec ${fort} élèves au-dessus de 12 et ${faible} en difficulté, la classe affiche une marge de progression. `,
+    const introMoyen = [
+      () => `La classe ${classeNom} obtient une moyenne générale de ${classeMoyenne.toFixed(2)}/20, ce qui traduit un niveau correct mais perfectible. `,
+      () => `Les résultats sont globalement satisfaisants, avec une moyenne de ${classeMoyenne.toFixed(2)}/20, mais des efforts restent à fournir. `,
+      () => `Avec ${fort} élèves au-dessus de 12 et ${faible} en difficulté, la classe affiche une moyenne de ${classeMoyenne.toFixed(2)}/20, signalant une marge de progression. `
     ];
     const introExcellent = [
       () => `La classe ${classeNom} se distingue par d'excellents résultats, avec une moyenne générale de ${classeMoyenne.toFixed(2)}/20. `,
-      () => `Les performances sont remarquables : ${fort} élèves dépassent les 12/20 pour une moyenne de ${classeMoyenne.toFixed(2)}/20. `,
+      () => `Les performances sont remarquables : ${fort} élèves dépassent les 12/20, pour une moyenne de classe de ${classeMoyenne.toFixed(2)}/20. `,
+      () => `Félicitations à l'ensemble des élèves et des enseignants : la moyenne de ${classeMoyenne.toFixed(2)}/20 reflète un travail de qualité. `
     ];
 
-    let intros = classeMoyenne < 10 ? introFaible : classeMoyenne <= 12 ? introMoyen : introExcellent;
-    rapport += intros[Math.floor(Math.random() * intros.length)]();
+    let introArr = classeMoyenne < 10 ? introFaible : classeMoyenne <= 12 ? introMoyen : introExcellent;
+    rapport += introArr[Math.floor(Math.random() * introArr.length)]();
     rapport += `Sur un effectif de ${eleves.length} élèves, ${elevesAvecNotes.length} ont participé aux évaluations. `;
-    rapport += `Répartition : ${faible} en dessous de 10, ${moyen} entre 10 et 12, ${fort} au‑delà de 12.\n\n`;
+    rapport += `La répartition des niveaux est la suivante : ${faible} élèves en dessous de 10, ${moyen} entre 10 et 12, et ${fort} au‑delà de 12.\n\n`;
 
-    rapport += `📊 <strong>Répartition visuelle des niveaux</strong>\n`;
     const totalAN = elevesAvecNotes.length;
+    rapport += `📊 <strong>Répartition visuelle des niveaux</strong>\n`;
     rapport += `Faibles (<10)  : ${generateBar(faible, totalAN)} ${faible}/${totalAN}\n`;
     rapport += `Moyens (10-12) : ${generateBar(moyen,  totalAN)} ${moyen}/${totalAN}\n`;
     rapport += `Forts (>12)    : ${generateBar(fort,   totalAN)} ${fort}/${totalAN}\n\n`;
 
+    const topPhrases    = [() => `Les trois meilleurs éléments sont `, () => `En tête de classement, on retrouve `, () => `Les élèves les plus performants sont `];
+    const bottomPhrases = [() => `À l'opposé, les élèves nécessitant un soutien prioritaire sont `, () => `En queue de peloton, on note `, () => `Les résultats les plus fragiles concernent `];
+
     if (top3.length > 0) {
-      rapport += `Les meilleurs élèves : `;
-      rapport += top3.map(e => `${e.prenom} ${e.nom} (${e.moyenne.toFixed(2)})`).join(', ') + '. ';
+      rapport += topPhrases[Math.floor(Math.random() * topPhrases.length)]();
+      const topList = top3.map(e => `${e.prenom} ${e.nom} (${e.moyenne.toFixed(2)})`).join(', ');
+      if (top3.length === 1) rapport += topList + '. ';
+      else if (top3.length === 2) rapport += topList.replace(', ', ' et ') + '. ';
+      else rapport += topList.slice(0, topList.lastIndexOf(', ')) + ` et ${top3[2].prenom} ${top3[2].nom} (${top3[2].moyenne.toFixed(2)}). `;
+      if (top3.length >= 2 && top3[0].moyenne - top3[1].moyenne > 3) rapport += `Un écart significatif sépare le premier de ses poursuivants. `;
     }
+
     if (bottom3.length > 0) {
-      rapport += `Élèves nécessitant un soutien : `;
-      rapport += bottom3.map(e => `${e.prenom} ${e.nom} (${e.moyenne.toFixed(2)})`).join(', ') + '. ';
-      if (bottom3.some(e => e.moyenne < 8)) rapport += `Plusieurs sont très en difficulté et nécessitent une prise en charge rapide. `;
+      rapport += bottomPhrases[Math.floor(Math.random() * bottomPhrases.length)]();
+      const bottomList = bottom3.map(e => `${e.prenom} ${e.nom} (${e.moyenne.toFixed(2)})`).join(', ');
+      if (bottom3.length === 1) rapport += bottomList + '. ';
+      else if (bottom3.length === 2) rapport += bottomList.replace(', ', ' et ') + '. ';
+      else rapport += bottomList.slice(0, bottomList.lastIndexOf(', ')) + ` et ${bottom3[2].prenom} ${bottom3[2].nom} (${bottom3[2].moyenne.toFixed(2)}). `;
+      if (bottom3.some(e => e.moyenne < 8)) rapport += `Plusieurs de ces élèves sont très en difficulté et nécessitent une prise en charge rapide. `;
     }
     rapport += `\n\n`;
 
     if (matiereStats.length > 0) {
       rapport += `📚 <strong>Performances détaillées par matière</strong>\n`;
-      const maxLen = Math.max(...matiereStats.map(m => m.matiere.length));
+      const maxMatiereLength = Math.max(...matiereStats.map(m => m.matiere.length));
+      const maxProfLength    = Math.max(...matiereStats.map(m => m.professeur.length));
       for (const m of matiereStats) {
-        rapport += `${m.matiere.padEnd(maxLen)} (${m.professeur}) : ${generateBar(parseFloat(m.moyenne))} ${m.moyenne}/20 – ${m.classement}\n`;
+        const bar           = generateBar(parseFloat(m.moyenne), 20, 20);
+        const matierePadded = m.matiere.padEnd(maxMatiereLength, ' ');
+        const profPadded    = m.professeur.padEnd(maxProfLength, ' ');
+        rapport += `${matierePadded} (${profPadded}) : ${bar} ${m.moyenne}/20 – ${m.classement}\n`;
       }
       rapport += `\n`;
+      rapport += `L'examen détaillé par discipline fait ressortir les éléments suivants : `;
+      for (const m of matiereStats) {
+        const appreciation = m.classement === "Faible" ? "nettement insuffisante" : m.classement === "Suffisant" ? "juste acceptable" : "tout à fait satisfaisante";
+        rapport += `En ${m.matiere} (${m.professeur}), la moyenne de ${m.moyenne}/20 est ${appreciation}. `;
+        if (m.classement === "Faible") rapport += `Ce résultat appelle une réflexion pédagogique et un soutien ciblé. `;
+        else if (m.classement === "Très bien") rapport += `Félicitations au professeur pour cette performance. `;
+      }
+    } else {
+      rapport += `Aucune donnée par matière n'est disponible. `;
+    }
+    rapport += `\n\n`;
+
+    const tresBien   = matiereStats.filter(m => m.classement === "Très bien");
+    const faiblesMat = matiereStats.filter(m => m.classement === "Faible");
+    const recos = [];
+    if (faiblesMat.length > 0) {
+      const matNoms = faiblesMat.map(m => m.matiere).join(', ');
+      recos.push(faiblesMat.length === 1
+        ? `Il est impératif de mettre en place un plan de remédiation en ${matNoms} (groupes de besoin, tutorat).`
+        : `Une coordination entre les enseignants de ${matNoms} est nécessaire pour élaborer un plan de rattrapage collectif.`
+      );
+    }
+    if (tresBien.length > 0) {
+      const profs = tresBien.map(m => m.professeur).join(', ');
+      recos.push(`Les excellents résultats en ${tresBien.map(m => m.matiere).join(', ')} doivent être valorisés ; nous encourageons les professeurs concernés (${profs}) à partager leurs bonnes pratiques.`);
+    }
+    if (faible > elevesAvecNotes.length * 0.3) {
+      recos.push(`La proportion élevée d'élèves en difficulté (plus de 30%) justifie la tenue d'une réunion pédagogique pour définir des actions concertées.`);
+    } else if (fort > elevesAvecNotes.length * 0.4) {
+      recos.push(`La dynamique positive de la classe pourrait être exploitée pour développer des projets interdisciplinaires ou des défis stimulants.`);
+    } else {
+      recos.push(`La répartition équilibrée des niveaux est un atout ; il convient de maintenir cette harmonie en différenciant les activités selon les besoins.`);
     }
 
-    // Recommandations
-    const faiblesMat = matiereStats.filter(m => m.classement === "Faible");
-    const tresBien   = matiereStats.filter(m => m.classement === "Très bien");
-    const recos = [];
-    if (faiblesMat.length > 0) recos.push(`Mettre en place un plan de remédiation en ${faiblesMat.map(m => m.matiere).join(', ')}.`);
-    if (tresBien.length > 0)   recos.push(`Valoriser les bons résultats en ${tresBien.map(m => m.matiere).join(', ')}.`);
-    if (faible > totalAN * 0.3) recos.push(`La proportion élevée d'élèves en difficulté justifie une réunion pédagogique.`);
-
     rapport += `<strong>Recommandations :</strong> `;
-    rapport += recos.length > 0 ? recos.join(' ') : `Poursuivre les efforts actuels.`;
+    rapport += recos.length > 0 ? recos.join(' ') + ` ` : `Poursuivre les efforts actuels et encourager les initiatives pédagogiques. `;
     rapport += `\n\n`;
 
     rapport += `<strong>Conclusion.</strong> `;
-    if (classeMoyenne < 10) rapport += `Ce rapport met en évidence une situation qui requiert une intervention rapide. Un plan de remédiation et un suivi individualisé s'imposent.`;
-    else if (classeMoyenne <= 12) rapport += `Les résultats sont encourageants mais perfectibles. Un accompagnement ciblé permettra d'élever le niveau général.`;
-    else rapport += `La qualité des résultats est remarquable. Maintenez cette dynamique en encourageant l'excellence.`;
+    if (classeMoyenne < 10) rapport += `Ce rapport met en évidence une situation qui requiert une intervention rapide et structurée de l'équipe éducative. Une stratégie de remédiation, associée à un suivi individualisé, permettra d'enrayer les difficultés et de replacer les élèves sur une trajectoire de progrès. `;
+    else if (classeMoyenne <= 12) rapport += `Les résultats de la classe sont encourageants mais perfectibles. Un accompagnement ciblé des élèves moyens et fragiles, combiné à une valorisation des réussites, devrait permettre d'élever le niveau général. `;
+    else rapport += `La qualité des résultats obtenus par cette classe est remarquable. Il convient de maintenir cette dynamique en encourageant l'excellence et en veillant à ce qu'aucun élève ne décroche. `;
+    rapport += `Un suivi régulier des indicateurs permettra d'ajuster les actions pédagogiques tout au long de l'année.`;
 
     return rapport;
 
@@ -630,59 +595,47 @@ async function handleStudentReport(db, searchTerm, userId) {
       const nomNorm    = normalizeString(eleve.nom    || '');
       const fullName1  = prenomNorm + ' ' + nomNorm;
       const fullName2  = nomNorm + ' ' + prenomNorm;
-
       if (
         fullName1.includes(normalizedSearch) ||
         fullName2.includes(normalizedSearch) ||
         prenomNorm.includes(normalizedSearch) ||
         nomNorm.includes(normalizedSearch)
-      ) {
-        foundStudent = eleve;
-        break;
-      }
+      ) { foundStudent = eleve; break; }
     }
-
     if (!foundStudent) return `😕 Impossible de trouver l'élève "${searchTerm}".`;
 
-    const classes = await getAllClasses(db, userId);
-    const classe  = classes.find(c => c.id === foundStudent.classeId);
+    const classes   = await getAllClasses(db, userId);
+    const classe    = classes.find(c => c.id === foundStudent.classeId);
     const classeNom = classe ? (classe.nomClasse || classe.classeNom || "Inconnue") : "Inconnue";
 
-    const notesQuery = query(
-      collection(db, 'notes'),
-      where('eleveId', '==', foundStudent.id),
-      where('createdBy', '==', userId)
+    const notesSnap = await getDocs(
+      query(collection(db, 'notes'),
+        where('eleveId', '==', foundStudent.id),
+        where('createdBy', '==', userId)
+      )
     );
-    const notesSnap = await getDocs(notesQuery);
-
-    if (notesSnap.empty) {
-      return `📋 <strong>${foundStudent.prenom} ${foundStudent.nom}</strong> (${classeNom})\n📭 Aucune note enregistrée pour cet élève.`;
-    }
+    if (notesSnap.empty) return `📋 <strong>${foundStudent.prenom} ${foundStudent.nom}</strong> (${classeNom})\n📭 Aucune note enregistrée pour cet élève.`;
 
     const matiereNotes = new Map();
     let totalGeneral = 0, nbNotesGeneral = 0;
 
     notesSnap.forEach(doc => {
-      const noteData = doc.data();
-      const val = Number(noteData.note || noteData.valeur);
+      const d = doc.data();
+      const val = Number(d.note || d.valeur);
       if (isNaN(val)) return;
-      const matiere = noteData.matiere || "Matière inconnue";
+      const matiere = d.matiere || "Matière inconnue";
       if (!matiereNotes.has(matiere)) matiereNotes.set(matiere, []);
       matiereNotes.get(matiere).push(val);
-      totalGeneral += val;
-      nbNotesGeneral++;
+      totalGeneral += val; nbNotesGeneral++;
     });
 
-    if (nbNotesGeneral === 0) {
-      return `📋 <strong>${foundStudent.prenom} ${foundStudent.nom}</strong> (${classeNom})\n📭 Aucune note valide trouvée.`;
-    }
+    if (nbNotesGeneral === 0) return `📋 <strong>${foundStudent.prenom} ${foundStudent.nom}</strong> (${classeNom})\n📭 Aucune note valide trouvée.`;
 
     const moyenneGenerale = totalGeneral / nbNotesGeneral;
-    const matieresStats = [];
-    const fortes = [], moyennes = [], faibles = [];
+    const matieresStats = [], fortes = [], moyennes = [], faibles = [];
 
     for (const [matiere, notes] of matiereNotes.entries()) {
-      const moy = notes.reduce((a, b) => a + b, 0) / notes.length;
+      const moy = notes.reduce((a,b) => a+b, 0) / notes.length;
       matieresStats.push({ matiere, moyenne: moy, nbNotes: notes.length });
       if (moy >= 13) fortes.push({ matiere, moyenne: moy });
       else if (moy >= 10) moyennes.push({ matiere, moyenne: moy });
@@ -691,70 +644,77 @@ async function handleStudentReport(db, searchTerm, userId) {
 
     const profil = moyenneGenerale < 10 ? "faible" : moyenneGenerale <= 12 ? "moyen" : "bon";
 
-    const generateBar = (value, max = 20, length = 20) => {
-      const filled = Math.round((value / max) * length);
-      return '█'.repeat(Math.max(0, filled)) + '░'.repeat(Math.max(0, length - filled));
+    const generateBar = (value, max=20, length=20) => {
+      const filled = Math.round((value/max)*length);
+      return '█'.repeat(Math.max(0,filled)) + '░'.repeat(Math.max(0,length-filled));
     };
 
-    let rapport = `📋 <strong>Rapport pédagogique – ${foundStudent.prenom} ${foundStudent.nom}</strong>\n`;
+    let rapport = `📋 <strong>Rapport pédagogique – Élève ${foundStudent.prenom} ${foundStudent.nom}</strong>\n`;
     rapport += `Classe : <strong>${classeNom}</strong>\n\n`;
 
-    const intros = {
-      faible: [
-        `${foundStudent.prenom} présente des résultats préoccupants avec une moyenne de ${moyenneGenerale.toFixed(2)}/20. `,
-        `Les performances de ${foundStudent.prenom} sont insuffisantes (${moyenneGenerale.toFixed(2)}/20). `,
-      ],
-      moyen: [
-        `${foundStudent.prenom} obtient ${moyenneGenerale.toFixed(2)}/20, niveau correct mais perfectible. `,
-        `Les résultats de ${foundStudent.prenom} sont satisfaisants (${moyenneGenerale.toFixed(2)}/20) mais des progrès sont possibles. `,
-      ],
-      bon: [
-        `${foundStudent.prenom} se distingue avec une excellente moyenne de ${moyenneGenerale.toFixed(2)}/20. `,
-        `Félicitations à ${foundStudent.prenom} pour sa moyenne de ${moyenneGenerale.toFixed(2)}/20. `,
-      ]
-    };
-    const introList = intros[profil];
-    rapport += introList[Math.floor(Math.random() * introList.length)];
-    rapport += `Évalué(e) dans ${matieresStats.length} matière(s). `;
-    rapport += `Fortes : ${fortes.length} ; moyennes : ${moyennes.length} ; faibles : ${faibles.length}.\n\n`;
+    const introFaible = [
+      () => `${foundStudent.prenom} présente des résultats préoccupants avec une moyenne générale de ${moyenneGenerale.toFixed(2)}/20. `,
+      () => `Les performances de ${foundStudent.prenom} sont insuffisantes : moyenne de ${moyenneGenerale.toFixed(2)}/20. `,
+      () => `Avec une moyenne de ${moyenneGenerale.toFixed(2)}/20, ${foundStudent.prenom} se situe en dessous du seuil de réussite. `
+    ];
+    const introMoyen = [
+      () => `${foundStudent.prenom} obtient une moyenne générale de ${moyenneGenerale.toFixed(2)}/20, ce qui traduit un niveau correct mais perfectible. `,
+      () => `Les résultats de ${foundStudent.prenom} sont globalement satisfaisants (${moyenneGenerale.toFixed(2)}/20), mais des progrès sont encore possibles. `,
+      () => `Avec ${fortes.length} matière(s) forte(s) et ${faibles.length} faible(s), ${foundStudent.prenom} affiche une moyenne de ${moyenneGenerale.toFixed(2)}/20. `
+    ];
+    const introBon = [
+      () => `${foundStudent.prenom} se distingue par d'excellents résultats, avec une moyenne générale de ${moyenneGenerale.toFixed(2)}/20. `,
+      () => `Les performances de ${foundStudent.prenom} sont remarquables : moyenne de ${moyenneGenerale.toFixed(2)}/20. `,
+      () => `Félicitations à ${foundStudent.prenom} pour sa moyenne de ${moyenneGenerale.toFixed(2)}/20, reflet d'un travail de qualité. `
+    ];
+
+    let introArr = profil === "faible" ? introFaible : profil === "moyen" ? introMoyen : introBon;
+    rapport += introArr[Math.floor(Math.random() * introArr.length)]();
+    rapport += `L'élève a été évalué(e) dans ${matieresStats.length} matière(s). `;
+    rapport += `Matières fortes (≥13) : ${fortes.length} ; moyennes (10-12) : ${moyennes.length} ; faibles (<10) : ${faibles.length}.\n\n`;
 
     rapport += `📚 <strong>Détail par matière</strong>\n`;
-    const maxLen = Math.max(...matieresStats.map(m => m.matiere.length));
-    for (const m of matieresStats.sort((a, b) => b.moyenne - a.moyenne)) {
-      rapport += `${m.matiere.padEnd(maxLen)} : ${generateBar(m.moyenne)} ${m.moyenne.toFixed(2)}/20 (${m.nbNotes} note(s))\n`;
+    const maxMatiereLength = Math.max(...matieresStats.map(m => m.matiere.length));
+    for (const m of matieresStats.sort((a,b) => b.moyenne - a.moyenne)) {
+      const bar           = generateBar(m.moyenne, 20, 20);
+      const matierePadded = m.matiere.padEnd(maxMatiereLength, ' ');
+      rapport += `${matierePadded} : ${bar} ${m.moyenne.toFixed(2)}/20 (${m.nbNotes} note(s))\n`;
     }
     rapport += `\n`;
 
-    if (fortes.length > 0) rapport += `✅ <strong>Points forts</strong> : ${fortes.map(f => `${f.matiere} (${f.moyenne.toFixed(2)})`).join(', ')}\n`;
+    if (fortes.length > 0)  rapport += `✅ <strong>Points forts</strong> : ${fortes.map(f => `${f.matiere} (${f.moyenne.toFixed(2)})`).join(', ')}\n`;
     if (faibles.length > 0) rapport += `⚠️ <strong>Points faibles</strong> : ${faibles.map(f => `${f.matiere} (${f.moyenne.toFixed(2)})`).join(', ')}\n`;
     rapport += `\n`;
 
-    const recos = {
-      faible: [
-        "Mettre en place un soutien ciblé dans les matières sous 10.",
-        "Envisager un tutorat pour les notions fondamentales.",
-        "Organiser un entretien avec les parents pour un plan de remédiation.",
-      ],
-      moyen: [
-        "Consolider les acquis par des exercices d'approfondissement.",
-        "Encourager une participation orale plus active.",
-        "Fixer des objectifs progressifs dans les matières faibles.",
-      ],
-      bon: [
-        "Valoriser l'excellence en proposant des projets avancés.",
-        "Préparer l'élève à des concours ou options d'excellence.",
-        "Encourager l'approfondissement autonome dans les matières de prédilection.",
-      ]
-    };
+    const recoFaible = [
+      "Mettre en place un soutien ciblé dans les matières où la moyenne est inférieure à 10.",
+      "Envisager un tutorat par un pair ou un enseignant pour les notions fondamentales.",
+      "Organiser un entretien avec les parents pour définir un plan de remédiation.",
+      "Proposer des exercices supplémentaires et un suivi renforcé."
+    ];
+    const recoMoyen = [
+      "Consolider les acquis dans les matières moyennes (10-12) par des exercices d'approfondissement.",
+      "Encourager une participation orale plus active pour gagner en confiance.",
+      "Travailler la méthodologie pour transformer les 12 en 14.",
+      "Fixer des objectifs progressifs dans les matières faibles."
+    ];
+    const recoBon = [
+      "Valoriser l'excellence en proposant des projets avancés ou des défis académiques.",
+      "Préparer l'élève à des concours ou à des options d'excellence.",
+      "Mettre en place un mentorat pour partager ses méthodes de travail.",
+      "Encourager l'approfondissement autonome dans les matières de prédilection."
+    ];
 
+    let recommandations = profil === "faible" ? [...recoFaible] : profil === "moyen" ? [...recoMoyen] : [...recoBon];
+    recommandations.sort(() => Math.random() - 0.5);
     rapport += `🎯 <strong>Recommandations</strong> :\n`;
-    recos[profil].forEach(r => rapport += `- ${r}\n`);
+    recommandations.slice(0, 3).forEach(r => rapport += `- ${r}\n`);
     rapport += `\n`;
 
     rapport += `📝 <strong>Conclusion</strong> : `;
-    if (profil === "faible") rapport += `La situation de ${foundStudent.prenom} nécessite une intervention rapide. Un accompagnement personnalisé et un dialogue avec la famille s'imposent.`;
-    else if (profil === "moyen") rapport += `${foundStudent.prenom} dispose d'une base solide. Avec un peu plus d'investissement, le cap des 12 peut être dépassé.`;
-    else rapport += `Félicitations à ${foundStudent.prenom} pour ces très bons résultats. Il/elle est invité(e) à maintenir cette dynamique.`;
+    if (profil === "faible") rapport += `La situation de ${foundStudent.prenom} nécessite une intervention rapide et structurée. Un accompagnement personnalisé, associé à un dialogue avec la famille, devrait permettre de redresser la barre.`;
+    else if (profil === "moyen") rapport += `${foundStudent.prenom} dispose d'une base solide mais perfectible. Avec un peu plus d'investissement et une méthode de travail adaptée, le cap des 12 peut être dépassé.`;
+    else rapport += `Félicitations à ${foundStudent.prenom} pour ces très bons résultats. Il/elle est invité(e) à maintenir cette dynamique et à viser l'excellence dans les matières qui lui plaisent.`;
 
     return rapport;
 
@@ -763,3 +723,5 @@ async function handleStudentReport(db, searchTerm, userId) {
     return "❌ Erreur lors de la génération du rapport individuel.";
   }
 }
+
+
