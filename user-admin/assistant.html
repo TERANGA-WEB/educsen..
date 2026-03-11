@@ -130,16 +130,6 @@
         .header-left { display: flex; align-items: center; gap: 12px; }
         .app-header h1 { font-weight: 500; font-size: 1.6rem; letter-spacing: -0.02em; }
 
-        /* Bannière limite abonnement */
-        .limit-banner {
-            display: none;
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            color: white; padding: 10px 24px;
-            font-size: 13px; font-weight: 600;
-            text-align: center; flex-shrink: 0;
-        }
-        .limit-banner.show { display: block; }
-
         .theme-toggle {
             background: transparent; border: 1px solid var(--border-subtle);
             color: var(--text-secondary); width: 40px; height: 40px;
@@ -167,8 +157,14 @@
             white-space: pre-wrap; word-break: break-word;
             box-shadow: var(--shadow-sm); transition: var(--transition);
         }
-        .message-row.user .message-bubble { background-color: var(--bg-user-message); border-bottom-right-radius: 4px; }
-        .message-row.assistant .message-bubble { background-color: var(--bg-assistant-message); border-bottom-left-radius: 4px; }
+        .message-row.user .message-bubble {
+            background-color: var(--bg-user-message);
+            border-bottom-right-radius: 4px;
+        }
+        .message-row.assistant .message-bubble {
+            background-color: var(--bg-assistant-message);
+            border-bottom-left-radius: 4px;
+        }
         .message-time { font-size: 0.7rem; color: var(--text-muted); margin-top: 4px; padding-left: 4px; }
         .message-row.user .message-time { text-align: right; }
 
@@ -240,7 +236,10 @@
             border-radius: 16px; text-align: center; position: relative;
             animation: fadeIn 0.3s ease; color: #1e293b;
         }
-        .report-close { position: absolute; top: 10px; right: 15px; font-size: 22px; cursor: pointer; color: #64748b; }
+        .report-close {
+            position: absolute; top: 10px; right: 15px;
+            font-size: 22px; cursor: pointer; color: #64748b;
+        }
         .report-close:hover { color: #ef4444; }
         .report-download-btn {
             margin-top: 20px; padding: 12px 24px;
@@ -306,6 +305,10 @@
                 <span class="nav-icon material-icons">assignment</span>
                 <span class="nav-lbl">Notes</span>
             </a>
+            <a href="/user-admin/bulletin.html" class="nav-item">
+                <span class="nav-icon material-icons">receipt_long</span>
+                <span class="nav-lbl">Bulletins</span>
+            </a>
             <a href="/user-admin/parametres.html" class="nav-item">
                 <span class="nav-icon material-icons">settings</span>
                 <span class="nav-lbl">Paramètres</span>
@@ -333,9 +336,6 @@
                 <i class="fas fa-moon"></i>
             </button>
         </header>
-
-        <!-- Bannière affiché quand limite atteinte -->
-        <div class="limit-banner" id="limitBanner"></div>
 
         <main class="chat-container" id="chatContainer">
             <div class="messages-wrapper" id="messagesWrapper"></div>
@@ -366,23 +366,15 @@
     <!-- html2pdf -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    <!-- ══════════════════════════════════════════════════
-         MODULE PRINCIPAL — ordre correct :
-         1. imports en haut
-         2. init firebase + vars
-         3. fonctions
-         4. events
-    ══════════════════════════════════════════════════ -->
     <script type="module">
 
         // ─────────────────────────────────────────────
-        // 1. IMPORTS — tous en haut du module
+        // 1. IMPORTS
         // ─────────────────────────────────────────────
-        import { initializeApp }  from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getFirestore }   from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { initializeApp }             from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getFirestore }              from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-        import { initSubscriptionChecker }     from './subscriptionLimits.js';
-        import assistantJs from './assistant.js';
+        import assistantJs                   from './assistant.js';
 
         // ─────────────────────────────────────────────
         // 2. FIREBASE
@@ -400,58 +392,52 @@
         const auth = getAuth(app);
 
         // ─────────────────────────────────────────────
-        // 3. SUBSCRIPTION CHECKER — initialisé une seule fois
-        // ─────────────────────────────────────────────
-        const subscriptionChecker = initSubscriptionChecker(app);
-
-        // ─────────────────────────────────────────────
-        // 4. VARIABLES & DOM
+        // 3. VARIABLES & DOM
         // ─────────────────────────────────────────────
         const messagesWrapper = document.getElementById('messagesWrapper');
         const userInput       = document.getElementById('userInput');
         const sendBtn         = document.getElementById('sendBtn');
         const chatContainer   = document.getElementById('chatContainer');
-        const limitBanner     = document.getElementById('limitBanner');
 
         let isTyping = false;
-
-        // userId = le vrai UID Firebase stocké au login
-        let userId = localStorage.getItem('userUid') || null;
+        let userId   = null; // sera défini par onAuthStateChanged
 
         // ─────────────────────────────────────────────
-        // 5. VÉRIFICATION AUTH — redirection si non connecté
+        // 4. AUTH — récupère l'uid Firebase réel
         // ─────────────────────────────────────────────
         onAuthStateChanged(auth, (user) => {
             if (!user) {
-                window.location.replace('/connexion.html');
+                window.location.replace('/index.html');
                 return;
             }
-            // Mettre à jour userId avec le vrai uid Firebase
+            // Stocker l'uid Firebase Auth (c'est le même que createdBy dans Firestore)
             userId = user.uid;
-            // Afficher dans la sidebar
+
+            // Afficher les infos dans la sidebar
             const name = user.displayName || user.email || 'Utilisateur';
-            document.getElementById('userName').textContent  = name;
+            document.getElementById('userName').textContent   = name;
             document.getElementById('userAvatar').textContent = name[0].toUpperCase();
         });
 
         // ─────────────────────────────────────────────
-        // 6. FONCTIONS D'AFFICHAGE
+        // 5. FONCTIONS D'AFFICHAGE
         // ─────────────────────────────────────────────
         function addMessage(text, sender) {
             const row = document.createElement('div');
             row.classList.add('message-row', sender);
+
             const content = document.createElement('div');
             content.classList.add('message-content');
+
             const bubble = document.createElement('div');
             bubble.classList.add('message-bubble');
-            if (text.includes('Aucune évaluation') || text.includes('Aucune donnée')) {
-                bubble.style.color = '#f87171';
-            }
             bubble.innerHTML = text;
+
             const time = document.createElement('span');
             time.classList.add('message-time');
             const now = new Date();
             time.textContent = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+
             content.appendChild(bubble);
             content.appendChild(time);
             row.appendChild(content);
@@ -474,16 +460,21 @@
         }
 
         // ─────────────────────────────────────────────
-        // 7. ENVOI — subscriptionChecker DANS la fonction
+        // 6. ENVOI DU MESSAGE
         // ─────────────────────────────────────────────
         async function handleSend() {
             const message = userInput.value.trim();
             if (!message || isTyping) return;
 
-            // Vérifier que l'utilisateur est toujours connecté
+            // Sécurité : vérifier que l'auth est prête
             if (!auth.currentUser) {
-                window.location.replace('/connexion.html');
+                window.location.replace('/index.html');
                 return;
+            }
+
+            // S'assurer que userId est bien défini (cas rare de lag auth)
+            if (!userId) {
+                userId = auth.currentUser.uid;
             }
 
             addMessage(message, 'user');
@@ -494,23 +485,12 @@
             showTyping();
 
             try {
-                // ── Vérification limite abonnement AVANT l'appel ──
-                const allowed = await subscriptionChecker.checkAndAlert('assistantQuery');
-                if (!allowed) {
-                    removeTyping();
-                    limitBanner.textContent = '⚠️ Vous avez atteint la limite de requêtes de votre abonnement.';
-                    limitBanner.classList.add('show');
-                    isTyping = false;
-                    sendBtn.disabled = userInput.value.trim() === '';
-                    return;
-                }
-
-                // ── Appel assistant ──
+                // ── Appel de l'assistant avec userId et db ──
                 const response = await assistantJs(message, userId, db);
                 removeTyping();
                 addMessage(response, 'assistant');
 
-                // Détection rapport → afficher modal PDF
+                // Si c'est un rapport → afficher la modal PDF
                 if (response.includes('Rapport pédagogique')) {
                     setTimeout(() => {
                         document.getElementById('reportModal').style.display = 'flex';
@@ -528,14 +508,12 @@
         }
 
         // ─────────────────────────────────────────────
-        // 8. ÉVÉNEMENTS
+        // 7. ÉVÉNEMENTS INPUT / BOUTON
         // ─────────────────────────────────────────────
         userInput.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = this.scrollHeight + 'px';
             sendBtn.disabled = this.value.trim() === '' || isTyping;
-            // Masquer la bannière limite quand l'utilisateur retape
-            limitBanner.classList.remove('show');
         });
 
         sendBtn.addEventListener('click', handleSend);
@@ -548,19 +526,21 @@
         });
 
         // ─────────────────────────────────────────────
-        // 9. MESSAGE DE BIENVENUE
+        // 8. MESSAGE DE BIENVENUE
         // ─────────────────────────────────────────────
         addMessage("Bonjour ! Je suis Zeyna, votre assistante pédagogique. Tapez <strong>aide</strong> pour voir les commandes disponibles.", 'assistant');
 
         // ─────────────────────────────────────────────
-        // 10. THÈME
+        // 9. THÈME CLAIR / SOMBRE
         // ─────────────────────────────────────────────
         const themeToggle = document.getElementById('themeToggle');
         const themeIcon   = themeToggle.querySelector('i');
+
         if (localStorage.getItem('theme') === 'light') {
             document.body.classList.add('light-theme');
             themeIcon.className = 'fas fa-sun';
         }
+
         themeToggle.addEventListener('click', () => {
             document.body.classList.toggle('light-theme');
             const isLight = document.body.classList.contains('light-theme');
@@ -569,7 +549,7 @@
         });
 
         // ─────────────────────────────────────────────
-        // 11. MODAL PDF
+        // 10. MODAL PDF
         // ─────────────────────────────────────────────
         document.getElementById('downloadReportBtn').addEventListener('click', () => {
             const bubbles = document.querySelectorAll('.message-row.assistant .message-bubble');
@@ -591,7 +571,7 @@
 
     </script>
 
-    <!-- SIDEBAR TOGGLE (script non-module séparé) -->
+    <!-- SIDEBAR TOGGLE (script non-module) -->
     <script>
         (function() {
             const sidebar    = document.getElementById('sidebar');
@@ -603,6 +583,7 @@
                     sidebar.classList.toggle('collapsed');
                     toggleIcon.textContent = sidebar.classList.contains('collapsed') ? 'chevron_right' : 'chevron_left';
                 });
+
                 function handleResize() {
                     if (window.innerWidth <= 768) {
                         sidebar.classList.add('collapsed');
@@ -617,5 +598,8 @@
             }
         })();
     </script>
+
 </body>
 </html>
+
+
